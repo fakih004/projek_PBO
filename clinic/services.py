@@ -8,7 +8,7 @@ from . import db
 from .models import *
 
 LABELS={
-    'WAITING_VERIFICATION':'Menunggu verifikasi ulang',
+    'WAITING_VERIFICATION':'Menunggu verifikasi', 'FAILED':'Gagal',
     'PENDING':'Menunggu verifikasi', 'RESCHEDULED':'Jadwal diubah · menunggu verifikasi',
     'VERIFIED':'Terverifikasi', 'CHECKED_IN':'Sudah hadir', 'CANCELLED':'Dibatalkan', 'REJECTED':'Ditolak',
     'WAITING_NURSE':'Menunggu pemeriksaan perawat', 'WAITING_DOCTOR':'Menunggu dokter',
@@ -241,14 +241,21 @@ class BillingService:
         return inv
 
     @staticmethod
-    def pay(v, actor, data):
+    def pay(v, actor, data, verified_request=False):
         inv=v.invoice
         if not inv: raise ValueError('Invoice belum tersedia.')
+        if inv.status==PaymentStatus.WAITING_VERIFICATION and not verified_request:
+            raise ValueError('Gunakan tombol Verifikasi pembayaran untuk pengajuan pasien yang menunggu.')
+        if inv.status not in (PaymentStatus.UNPAID,PaymentStatus.WAITING_VERIFICATION):
+            raise ValueError('Invoice ini sudah diselesaikan atau tidak dapat dibayar.')
         discount=number(data,'discount',0,inv.subtotal,True)
         method='BPJS' if v.appointment.insurance else required(data,'method',24)
         if method not in ('BPJS','Tunai','Transfer','QRIS','Debit'): raise ValueError('Metode pembayaran tidak valid.')
         if not v.appointment.insurance and method=='BPJS': raise ValueError('Kunjungan ini bukan BPJS.')
         status=PaymentStatus.BPJS_COVERED if v.appointment.insurance else PaymentStatus.PAID
+        claim=db.session.execute(update(Invoice).where(Invoice.id==inv.id,
+            Invoice.status==(PaymentStatus.WAITING_VERIFICATION if verified_request else PaymentStatus.UNPAID)).values(status=status))
+        if claim.rowcount!=1: raise ValueError('Status invoice sudah berubah. Muat ulang sebelum memproses pembayaran.')
         WorkflowService.transition(v,[VisitStatus.WAITING_PAYMENT],VisitStatus.COMPLETED)
         inv.discount=discount
         inv.coverage,inv.payable=(BPJSPayment() if v.appointment.insurance else GeneralPayment()).amounts(inv.subtotal-discount)

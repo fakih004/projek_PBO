@@ -2,13 +2,14 @@ from datetime import date, datetime, timedelta
 from functools import wraps
 import csv
 import io
-from flask import Blueprint, render_template, request, redirect, url_for, flash, abort, jsonify, Response
+from flask import Blueprint, render_template, request, redirect, url_for, flash, abort, jsonify, Response, send_file
 from flask_login import login_user, logout_user, login_required, current_user
 from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError, OperationalError
 from . import db
 from .models import *
 from .services import *
+from .revisions import PaymentVerificationService, ReferralService, clinic_settings
 
 web=Blueprint('web',__name__)
 
@@ -139,7 +140,8 @@ def dashboard_data():
     queue_visits=sorted([v for v in visits if v.status not in (VisitStatus.COMPLETED,VisitStatus.CANCELLED,VisitStatus.WAITING_VERIFICATION)],
         key=lambda v:(v.appointment.date,v.queue_state=='SKIPPED',v.appointment.time,v.id))
     screened=sum(bool(v.nursing and v.nursing.nurse_id==current_user.id) for v in daily) if current_user.role==Role.NURSE else 0
-    return dict(visits=(visits if current_user.role==Role.PATIENT else queue_visits)[:30],appointments=appointments,metrics=metrics,today=today,daily=daily,screened=screened,
+    pending_payments=PaymentRequest.query.filter_by(status=PaymentStatus.WAITING_VERIFICATION).order_by(PaymentRequest.submitted_at).all() if current_user.role==Role.ADMIN else []
+    return dict(visits=(visits if current_user.role==Role.PATIENT else queue_visits)[:30],appointments=appointments,metrics=metrics,today=today,daily=daily,screened=screened,pending_payments=pending_payments,
         revenue=revenue,month_revenue=month_revenue,doctors=Doctor.query.all(),
         low_stock=Medicine.query.filter(Medicine._stock<=Medicine.minimum).all() if current_user.role in (Role.ADMIN,Role.PHARMACIST) else [],
         active_visit=next((v for v in visits if v.status not in (VisitStatus.COMPLETED,VisitStatus.CANCELLED,VisitStatus.WAITING_VERIFICATION)),
@@ -296,13 +298,24 @@ def prescription(visit_id):
 @roles(Role.DOCTOR)
 def create_referral(visit_id):
     v=visit_access(visit_id,True)
-    def action():
-        if not v.examination or v.referral or v.status==VisitStatus.COMPLETED: raise ValueError('Rujukan hanya dapat dibuat sekali setelah pemeriksaan dan sebelum kunjungan selesai.')
-        db.session.add(Referral(visit=v,number=f'RUJ-{date.today():%Y%m%d}-{v.id:05}',
-            hospital=required(request.form,'hospital',160),specialist=required(request.form,'specialist',160),
-            reason=required(request.form,'reason'),notes=request.form.get('notes','')[:4000]))
-        NotificationService.send(v.patient,'Surat rujukan tersedia pada rekam medis Anda.')
-    return mutate(action,url_for('web.visit',visit_id=v.id))
+    try:
+        ReferralService.save(v,current_user,request.form)
+        db.session.commit()
+        flash('Surat rujukan berhasil disimpan.','success')
+        return redirect(url_for('web.referral',visit_id=v.id))
+    except (ValueError,IntegrityError,OperationalError) as error:
+        db.session.rollback()
+        flash(str(error) if isinstance(error,ValueError) else 'Rujukan telah berubah. Muat ulang untuk melanjutkan.','error')
+        return redirect(url_for('web.edit_referral',visit_id=v.id))
+
+
+@web.get('/visits/<int:visit_id>/referral/edit')
+@roles(Role.DOCTOR)
+def edit_referral(visit_id):
+    v=visit_access(visit_id,True)
+    if not v.examination: abort(403)
+    return render_template('referral_form.html',v=v,values=ReferralService.values(v),
+        hospitals=PartnerHospital.query.filter_by(active=True).order_by(PartnerHospital.name).all(),today=date.today())
 
 
 @web.get('/visits/<int:visit_id>/referral')
@@ -310,7 +323,16 @@ def create_referral(visit_id):
 def referral(visit_id):
     v=visit_access(visit_id,True)
     if not v.referral: abort(404)
-    return render_template('referral.html',v=v)
+    return render_template('referral.html',v=v,values=ReferralService.values(v))
+
+
+@web.get('/visits/<int:visit_id>/referral/pdf')
+@roles(Role.PATIENT,Role.ADMIN,Role.DOCTOR)
+def download_referral(visit_id):
+    v=visit_access(visit_id,True)
+    if not v.referral: abort(404)
+    from .documents import referral_pdf
+    return send_file(referral_pdf(v),mimetype='application/pdf',as_attachment=True,download_name=v.referral.number+'.pdf',max_age=0)
 
 
 @web.get('/referrals')
@@ -477,3 +499,98 @@ def reports():
         return Response('\ufeff'+stream.getvalue(),mimetype='text/csv',headers={'Content-Disposition':'attachment; filename=laporan.csv'})
     return render_template('reports.html',payments=payments,visits=visits,totals=totals,start=start,end=end,
         revenue=sum(p.amount for p in payments),coverage=sum(p.invoice.coverage for p in payments))
+
+
+@web.get('/payments')
+@roles(Role.PATIENT,Role.ADMIN)
+def payments():
+    invoices=Invoice.query.join(Visit).join(Appointment)
+    if current_user.role==Role.PATIENT: invoices=invoices.filter(Appointment.patient_id==current_user.patient.id)
+    return render_template('payments.html',invoices=invoices.order_by(Invoice.id.desc()).all())
+
+
+@web.get('/visits/<int:visit_id>/payment')
+@roles(Role.PATIENT,Role.ADMIN)
+def payment_detail(visit_id):
+    v=visit_access(visit_id)
+    if not v.invoice: abort(404)
+    return render_template('payment.html',v=v,settings=clinic_settings(),
+        pending=PaymentRequest.query.filter_by(invoice_id=v.invoice.id,status=PaymentStatus.WAITING_VERIFICATION).first())
+
+
+@web.post('/visits/<int:visit_id>/payment/submit')
+@roles(Role.PATIENT)
+def submit_payment(visit_id):
+    v=visit_access(visit_id)
+    return mutate(lambda:PaymentVerificationService.submit(v,current_user,request.form.get('method')),
+                  url_for('web.payment_detail',visit_id=v.id))
+
+
+@web.post('/admin/payments/<int:request_id>/<action>')
+@roles(Role.ADMIN)
+def review_payment(request_id,action):
+    if action not in ('verify','reject'): abort(404)
+    pending=db.get_or_404(PaymentRequest,request_id)
+    return mutate(lambda:PaymentVerificationService.review(pending,current_user,action=='verify'),
+                  url_for('web.payment_detail',visit_id=pending.invoice.visit_id))
+
+
+@web.get('/visits/<int:visit_id>/payment/qr.png')
+@roles(Role.PATIENT,Role.ADMIN)
+def payment_qr(visit_id):
+    v=visit_access(visit_id)
+    if not v.invoice or v.appointment.insurance: abort(404)
+    import qrcode
+    output=io.BytesIO()
+    qrcode.make(f'MEDIKA-HUSADA|INVOICE={v.invoice.number}|AMOUNT={v.invoice.payable}').save(output,format='PNG')
+    output.seek(0)
+    response=send_file(output,mimetype='image/png',as_attachment=request.args.get('download')=='1',
+                      download_name='QRIS-DEMO-'+v.invoice.number+'.png',max_age=0)
+    response.headers['Cache-Control']='no-store'
+    return response
+
+
+@web.get('/api/visits/<int:visit_id>/payment/status')
+@roles(Role.PATIENT,Role.ADMIN)
+def payment_status(visit_id):
+    v=visit_access(visit_id)
+    if not v.invoice: abort(404)
+    return jsonify(status=v.invoice.status.value,visit_status=v.status.value,payable=v.invoice.payable)
+
+
+@web.route('/admin/settings',methods=['GET','POST'])
+@roles(Role.ADMIN)
+def settings():
+    if request.method=='POST':
+        def save():
+            settings=clinic_settings()
+            settings.bank=required(request.form,'bank',80)
+            account=required(request.form,'account_number',40)
+            if not account.isdigit(): raise ValueError('Nomor rekening harus berupa digit.')
+            settings.account_number=account
+            settings.account_name=required(request.form,'account_name',160)
+            settings.bank_demo=bool(request.form.get('bank_demo'))
+            db.session.add(settings)
+        return mutate(save,url_for('web.settings'))
+    return render_template('settings.html',settings=clinic_settings(),hospitals=PartnerHospital.query.order_by(PartnerHospital.name).all())
+
+
+@web.post('/admin/hospitals')
+@roles(Role.ADMIN)
+def hospitals():
+    def save():
+        hospital=db.get_or_404(PartnerHospital,request.form.get('id',type=int)) if request.form.get('id') else PartnerHospital()
+        hospital.name=required(request.form,'name',160)
+        hospital.departments=str(request.form.get('departments',''))[:300]
+        hospital.address=str(request.form.get('address',''))[:300]
+        hospital.phone=str(request.form.get('phone',''))[:24]
+        hospital.active=bool(request.form.get('active'))
+        db.session.add(hospital)
+    return mutate(save,url_for('web.settings')+'#hospitals')
+
+
+@web.get('/admin/queue')
+@roles(Role.ADMIN)
+def queue_page():
+    visits=scoped_visits().filter(Visit.status.in_([VisitStatus.WAITING_NURSE,VisitStatus.WAITING_DOCTOR,VisitStatus.WITH_DOCTOR]))
+    return render_template('queue.html',visits=visits.order_by(Appointment.date,Appointment.time).all())

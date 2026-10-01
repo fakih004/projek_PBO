@@ -38,8 +38,11 @@ class AppointmentStatus(str, Enum):
 
 class PaymentStatus(str, Enum):
     UNPAID='UNPAID'
+    WAITING_VERIFICATION='WAITING_VERIFICATION'
     PAID='PAID'
     BPJS_COVERED='BPJS_COVERED'
+    FAILED='FAILED'
+    CANCELLED='CANCELLED'
 
 
 class PrescriptionStatus(str, Enum):
@@ -295,3 +298,50 @@ class Referral(db.Model):
     reason=db.Column(db.Text, nullable=False)
     notes=db.Column(db.Text, default='')
     created_at=db.Column(db.DateTime, default=datetime.now)
+    clinical=db.relationship('ReferralClinical', backref='referral', uselist=False, cascade='all, delete-orphan')
+
+
+class ReferralClinical(db.Model):
+    """Additive extension: old referral rows and all original columns remain intact."""
+    id=db.Column(db.Integer, primary_key=True)
+    referral_id=db.Column(db.ForeignKey('referral.id'), unique=True, nullable=False)
+    diagnosis=db.Column(db.Text, nullable=False)
+    examination=db.Column(db.Text, nullable=False)
+    treatments=db.Column(db.Text, nullable=False)
+    medicines=db.Column(db.Text, nullable=False)
+    condition=db.Column(db.Text, nullable=False)
+    referral_date=db.Column(db.Date, nullable=False)
+    updated_at=db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+    version=db.Column(db.Integer, nullable=False, default=1)
+
+
+class PartnerHospital(db.Model):
+    id=db.Column(db.Integer, primary_key=True)
+    name=db.Column(db.String(160), unique=True, nullable=False)
+    departments=db.Column(db.String(300), default='')
+    address=db.Column(db.String(300), default='')
+    phone=db.Column(db.String(24), default='')
+    active=db.Column(db.Boolean, default=True, nullable=False)
+
+
+class ClinicSettings(db.Model):
+    id=db.Column(db.Integer, primary_key=True)
+    bank=db.Column(db.String(80), nullable=False, default='BCA')
+    account_number=db.Column(db.String(40), nullable=False, default='1234567890')
+    account_name=db.Column(db.String(160), nullable=False, default='Klinik Medika Husada')
+    bank_demo=db.Column(db.Boolean, nullable=False, default=True)
+
+
+class PaymentRequest(db.Model):
+    """Patient declarations, separate from settled Payment so revenue stays accurate."""
+    id=db.Column(db.Integer, primary_key=True)
+    invoice_id=db.Column(db.ForeignKey('invoice.id'), nullable=False, index=True)
+    method=db.Column(db.String(24), nullable=False)
+    amount=db.Column(db.Integer, nullable=False)
+    status=db.Column(db.Enum(PaymentStatus), nullable=False, default=PaymentStatus.WAITING_VERIFICATION)
+    # One active request per invoice; rejected attempts remain as history.
+    active_key=db.Column(db.Integer, unique=True)
+    submitted_at=db.Column(db.DateTime, nullable=False, default=datetime.now)
+    reviewed_at=db.Column(db.DateTime)
+    reviewed_by=db.Column(db.ForeignKey('user.id'))
+    invoice=db.relationship(Invoice, backref='requests')

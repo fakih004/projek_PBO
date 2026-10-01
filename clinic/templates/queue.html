@@ -1,0 +1,1 @@
+{% extends 'base.html' %}{% from 'macros.html' import visits_table %}{% block content %}<div class="page-head"><div><span class="eyebrow">KOORDINASI PELAYANAN</span><h1>Antrean pasien</h1><p class="muted">Panggil, lewati, atau kembalikan pasien ke daftar tunggu.</p></div></div><section class="card">{{ visits_table(visits,true) }}</section>{% endblock %}

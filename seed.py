@@ -6,9 +6,19 @@ from clinic.services import AppointmentService, NotificationService
 
 
 def seed_data(demo=True):
-    accounts=[('admin','Siti Rahmawati',Role.ADMIN,'Admin123!'),
-        ('perawat','Ns. Dian Lestari',Role.NURSE,'Perawat123!'),
-        ('apoteker','apt. Rahmat Hidayat',Role.PHARMACIST,'Apoteker123!'),
+    # Rename in place: all nurse, cashier, inventory and notification foreign keys survive.
+    for old,new,name,role in [('admin','komang','Komang',Role.ADMIN),('perawat','gea','Gea',Role.NURSE),('apoteker','bintang','Bintang',Role.PHARMACIST)]:
+        legacy=User.query.filter_by(email=old+'@medikahusada.local').first()
+        target=User.query.filter_by(email=new+'@medikahusada.local').first()
+        if legacy and target and legacy.id!=target.id:
+            raise ValueError(f'Akun {new} dan {old} sudah sama-sama ada; tidak digabung otomatis.')
+        user=legacy or target
+        if user:
+            if user.role!=role: raise ValueError(f'Peran akun {new} tidak sesuai; tidak diubah otomatis.')
+            user.email=new+'@medikahusada.local'; user.name=name
+    accounts=[('komang','Komang',Role.ADMIN,'Admin123!'),
+        ('gea','Gea',Role.NURSE,'Perawat123!'),
+        ('bintang','Bintang',Role.PHARMACIST,'Apoteker123!'),
         ('fakih','dr. Muhammad Fakih Nabal',Role.DOCTOR,'Dokter123!'),
         ('alia','dr. Alia Fransiska Dewi Arum Trilestari',Role.DOCTOR,'Dokter123!'),
         ('pasien','Budi Santoso',Role.PATIENT,'Pasien123!'),
@@ -35,6 +45,10 @@ def seed_data(demo=True):
             medicine=Medicine(name=name,category='Obat',unit='sachet' if name=='ORS' else 'tablet',_stock=0,price=1000+i*500,minimum=20,expiry=date.today()+timedelta(days=365))
             db.session.add(medicine); db.session.flush()
             medicine.change_stock(15 if i==8 else 200,'Stok awal demo',User.query.filter_by(role=Role.ADMIN).first().id)
+    if not db.session.get(ClinicSettings,1):
+        db.session.add(ClinicSettings(id=1,bank='BCA',account_number='1234567890',account_name='Klinik Medika Husada',bank_demo=True))
+    if not PartnerHospital.query.first():
+        db.session.add(PartnerHospital(name='RS Mitra Medika (Demo)',departments='Penyakit Dalam, Obstetri dan Ginekologi',address='Data contoh — dapat diubah admin'))
     db.session.commit()
     if new_database and demo:
         doctor=Doctor.query.first()
