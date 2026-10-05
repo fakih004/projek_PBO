@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="id">
+<head><meta charset="utf-8"><title>Frontend workflow smoke test</title><style>body{font:16px system-ui;padding:32px;background:#f4f7f6;color:#273036}.pass{color:#198b38}.fail{color:#b63131}li{margin:8px 0}</style></head>
+<body>
+  <h1>Medika Husada frontend smoke test</h1>
+  <ol id="results"></ol>
+  <strong id="summary">Menjalankan…</strong>
+  <script src="../assets/js/data.js"></script>
+  <script src="../assets/js/store.js"></script>
+  <script src="../assets/js/views.js"></script>
+  <script>
+    const results = document.querySelector('#results');
+    const checks = [];
+    const assert = (condition, message) => {
+      if (!condition) throw new Error(message);
+      checks.push(message);
+      results.insertAdjacentHTML('beforeend', `<li class="pass">PASS — ${message}</li>`);
+    };
+    try {
+      Clinic.reset();
+      Clinic.switchRole('nurse');
+      Clinic.nursing(1, { systolic:120, diastolic:80, temperature:36.6, weight:65, height:170, pulse:75, respiration:18, spo2:98, pain:1, complaint:'Keluhan smoke test', notes:'' });
+      assert(Clinic.visit(1).status === 'WAITING_DOCTOR', 'asesmen perawat mengirim pasien ke dokter');
+
+      Clinic.switchRole('doctor');
+      Clinic.startExam(1);
+      Clinic.examine(1, { anamnesis:'Uji', physical:'Baik', diagnosis:'Diagnosis uji', assessment:'', secondary:'', icd10:'Z00.0', treatment:'Pemeriksaan', treatmentFee:15000, notes:'', recommendation:'Istirahat', followup:'Kontrol', laboratory:'', medicineId:1, quantity:3, dosage:'1 tablet', frequency:'3 kali sehari', duration:'1 hari', timing:'Sesudah makan', instruction:'' });
+      assert(Clinic.visit(1).status === 'WAITING_PHARMACY', 'pemeriksaan dengan resep dikirim ke farmasi');
+
+      const before = Clinic.medicine(1).stock;
+      Clinic.switchRole('pharmacist');
+      Clinic.pharmacy(1, 'start');
+      Clinic.pharmacy(1, 'ready');
+      assert(Clinic.medicine(1).stock === before - 3, 'obat siap mengurangi stok sesuai resep');
+      Clinic.pharmacy(1, 'handover');
+      assert(Clinic.visit(1).status === 'WAITING_PAYMENT' && Clinic.visit(1).invoice, 'penyerahan obat membuat invoice');
+
+      Clinic.switchRole('admin');
+      Clinic.pay(1, { discount:0, method:'QRIS' });
+      assert(Clinic.visit(1).status === 'COMPLETED', 'pembayaran menyelesaikan kunjungan');
+      assert(Clinic.visit(1).invoice.status === 'PAID', 'invoice umum berstatus lunas');
+
+      Clinic.reset();
+      assert(ClinicViews.landing().includes('Langkah kecil'), 'landing page berhasil dirender');
+      assert(ClinicViews.auth(false).includes('Selamat datang kembali'), 'halaman autentikasi berhasil dirender');
+      Clinic.switchRole('admin');
+      assert([ClinicViews.dashboard(), ClinicViews.appointments(), ClinicViews.booking(), ClinicViews.patients(), ClinicViews.patientDetail(1), ClinicViews.visits(), ClinicViews.visit(4), ClinicViews.doctors(), ClinicViews.medicines(), ClinicViews.reports(), ClinicViews.users(), ClinicViews.referrals(), ClinicViews.receipt(5)].every(html => html.length > 500), 'seluruh layar admin berhasil dirender');
+      Clinic.switchRole('nurse');
+      assert(ClinicViews.dashboard().length > 500 && ClinicViews.visit(1).includes('PEMERIKSAAN AWAL'), 'layar perawat berhasil dirender');
+      Clinic.switchRole('doctor');
+      assert(ClinicViews.dashboard().length > 500 && ClinicViews.visit(2).includes('Mulai pemeriksaan'), 'layar dokter berhasil dirender');
+      Clinic.switchRole('pharmacist');
+      assert(ClinicViews.dashboard().length > 500 && ClinicViews.visit(3).includes('Mulai racik'), 'layar apoteker berhasil dirender');
+      Clinic.switchRole('patient');
+      assert([ClinicViews.dashboard(), ClinicViews.appointments(), ClinicViews.booking(), ClinicViews.visits(), ClinicViews.visit(1), ClinicViews.profile(), ClinicViews.referrals(), ClinicViews.prescriptionPrint(5)].every(html => html.length > 500), 'seluruh layar pasien berhasil dirender');
+      Clinic.reset();
+      document.querySelector('#summary').className = 'pass';
+      document.querySelector('#summary').textContent = `${checks.length} pemeriksaan lulus`;
+      document.title = `PASS ${checks.length} checks`;
+    } catch (error) {
+      results.insertAdjacentHTML('beforeend', `<li class="fail">FAIL — ${error.message}</li>`);
+      document.querySelector('#summary').className = 'fail';
+      document.querySelector('#summary').textContent = 'Smoke test gagal';
+      document.title = 'FAIL frontend smoke test';
+      throw error;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% from 'macros.html' import field,csrf,patient_fields %}
+{% block title %}{{ 'Daftar Pasien' if register else 'Masuk' }} · Medika Husada{% endblock %}
+{% block content %}
+<div class="vertical-align-wrap">
+  <div class="vertical-align-middle auth-main hospital clinic-auth{% if register %} register-mode{% endif %}">
+    <div class="auth-box">
+      <div class="top">
+        <a class="auth-brand" href="{{ url_for('web.index') }}"><span><i class="fa fa-plus"></i></span><strong>MEDIKA HUSADA</strong></a>
+        <small>KLINIK PRATAMA · SISTEM INFORMASI</small>
+      </div>
+      <div class="card">
+        <div class="header">
+          <span class="eyebrow">PORTAL KLINIK</span>
+          <p class="lead">{{ 'Buat akun pasien' if register else 'Selamat datang kembali' }}</p>
+          <p>{{ 'Lengkapi identitas untuk mulai menggunakan layanan klinik.' if register else 'Masuk untuk mengakses layanan dan ruang kerja Anda.' }}</p>
+        </div>
+        <div class="body">
+          <form method="post" class="form-auth-small">
+            {{ csrf() }}
+            {% if register %}{{ patient_fields() }}{% endif %}
+            <div class="form-grid{% if not register %} one{% endif %}">
+              {{ field('email','Email','email') }}
+              <div class="password-field">{{ field('password','Password','password') }}<button class="text-button" type="button" data-password>Lihat</button></div>
+              {% if register %}{{ field('confirm','Konfirmasi password','password') }}{% endif %}
+            </div>
+            <button class="button full"><i class="fa {{ 'fa-user-plus' if register else 'fa-sign-in' }}"></i>{{ 'Daftar akun' if register else 'Masuk ke akun' }}</button>
+            <div class="bottom">{{ 'Sudah memiliki akun?' if register else 'Pasien baru?' }} <a href="{{ url_for('web.login_page') if register else url_for('web.register') }}">{{ 'Masuk' if register else 'Daftar sekarang' }}</a></div>
+          </form>
+        </div>
+      </div>
+      <a class="auth-back" href="{{ url_for('web.index') }}"><i class="fa fa-arrow-left"></i> Kembali ke beranda</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

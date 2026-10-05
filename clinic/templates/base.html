@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <meta name="description" content="Sistem Informasi Klinik Pratama Medika Husada">
+  <link rel="icon" href="{{ url_for('static',filename='favicon.svg') }}" type="image/svg+xml">
+  <title>{% block title %}Medika Husada · Klinik Pratama{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static',filename='hospital/assets/vendor/bootstrap/css/bootstrap.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static',filename='hospital/assets/vendor/font-awesome/css/font-awesome.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static',filename='hospital/assets/css/main.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static',filename='css/app.css') }}">
+  <script src="{{ url_for('static',filename='js/app.js') }}" defer></script>
+</head>
+<body data-theme="light" class="font-nunito{% if current_user.is_authenticated %} workspace{% endif %}{% if embedded|default(false) %} embedded{% endif %}">
+{% macro brand(compact=false) %}
+  <a class="clinic-brand{% if compact %} compact{% endif %}" href="{{ url_for('web.index') }}" aria-label="Medika Husada">
+    <span class="clinic-logo"><i class="fa fa-plus"></i></span>
+    <span class="clinic-brand-copy"><strong>MEDIKA HUSADA</strong><small>KLINIK PRATAMA · SIM</small></span>
+  </a>
+{% endmacro %}
+
+{% set is_auth_page=request.endpoint in ['web.login_page','web.register'] %}
+{% if current_user.is_authenticated %}
+<div id="wrapper" class="theme-cyan clinic-workspace">
+  <nav class="navbar navbar-fixed-top clinic-navbar">
+    <div class="container-fluid">
+      <div class="navbar-brand">
+        <button type="button" class="btn-toggle-offcanvas" id="menu-toggle" aria-label="Buka navigasi" aria-expanded="false"><i class="fa fa-bars"></i></button>
+        {{ brand(true) }}
+      </div>
+      <div class="navbar-right">
+        {% if current_user.role.value=='admin' %}
+        <form class="navbar-form search-form" action="{{ url_for('web.patients') }}">
+          <input name="q" class="form-control" placeholder="Cari nama, NIK, atau nomor RM…" aria-label="Cari pasien">
+          <button type="submit" class="btn btn-default" aria-label="Cari"><i class="icon-magnifier"></i></button>
+        </form>
+        {% endif %}
+        <div id="navbar-menu"><ul class="nav navbar-nav">
+          <li class="clinic-online"><i class="fa fa-circle"></i><span>Sistem aktif</span></li>
+          <li><button type="button" class="icon-menu notification-toggle" id="notification-toggle" aria-label="Notifikasi" aria-expanded="false"><i class="fa fa-bell"></i><b id="notification-count">0</b></button></li>
+          <li><form method="post" action="{{ url_for('web.logout') }}" class="navbar-logout"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="icon-menu" title="Keluar" aria-label="Keluar"><i class="fa fa-power-off"></i></button></form></li>
+        </ul></div>
+      </div>
+    </div>
+  </nav>
+
+  <aside id="left-sidebar" class="sidebar">
+    <button type="button" class="btn-toggle-offcanvas sidebar-close" aria-label="Tutup navigasi"><i class="fa fa-arrow-left"></i></button>
+    <div class="sidebar-scroll">
+      <div class="user-account">
+        <span class="user-initial" aria-hidden="true">{{ current_user.name[0]|upper }}</span>
+        <div class="user-copy"><span>Selamat datang,</span><strong>{{ current_user.name }}</strong><small>{{ labels[current_user.role.value] }}</small></div>
+      </div>
+      <ul class="nav nav-tabs clinic-sidebar-tabs"><li class="nav-item"><span class="nav-link active">MENU UTAMA</span></li></ul>
+      <nav id="left-sidebar-nav" class="sidebar-nav">
+        {% set links=[('web.dashboard','fa-dashboard','Dashboard')] %}
+        {% if current_user.role.value=='patient' %}
+          {% set links=links+[('web.booking','fa-calendar-plus-o','Buat Janji Temu'),('web.appointments','fa-calendar-check-o','Janji Temu'),('web.records','fa-file-text-o','Rekam Medis Saya'),('web.referrals','fa-share-square-o','Surat Rujukan'),('web.profile','fa-user-o','Profil Saya')] %}
+        {% elif current_user.role.value=='admin' %}
+          {% set links=links+[('web.patients','fa-users','Pendaftaran & Pasien'),('web.appointments','fa-calendar-check-o','Jadwal & Janji Temu'),('web.doctors','fa-user-md','Dokter & Jadwal'),('web.records','fa-stethoscope','Kunjungan & Pembayaran'),('web.medicines','fa-medkit','Farmasi'),('web.reports','fa-line-chart','Laporan & Keuangan'),('web.referrals','fa-share-square-o','Rujukan'),('web.users','fa-cogs','Pengguna & Akses')] %}
+        {% elif current_user.role.value=='doctor' %}
+          {% set links=links+[('web.records','fa-file-text-o','Rekam Medis'),('web.referrals','fa-share-square-o','Surat Rujukan')] %}
+        {% elif current_user.role.value=='pharmacist' %}
+          {% set links=links+[('web.medicines','fa-medkit','Obat & Persediaan')] %}
+        {% endif %}
+        <ul class="metismenu li_animation_delay">
+          {% for endpoint,icon,label in links %}
+          {% set active=request.endpoint==endpoint or (endpoint=='web.dashboard' and request.endpoint=='web.role_dashboard') %}
+          <li class="{% if active %}active{% endif %}"><a href="{{ url_for(endpoint) }}"><i class="fa {{ icon }}"></i><span>{{ label }}</span></a></li>
+          {% endfor %}
+        </ul>
+      </nav>
+      <div class="sidebar-help"><i class="fa fa-heartbeat"></i><div><strong>Medika Husada</strong><small>Pelayanan terintegrasi</small></div></div>
+    </div>
+  </aside>
+  <main id="main-content" class="main clinic-main"><div class="container-fluid">
+{% elif is_auth_page %}
+  <main class="auth-shell">
+{% else %}
+  <header class="public-nav">
+    {{ brand() }}
+    <button type="button" class="public-menu-toggle" id="public-menu-toggle" aria-label="Buka menu" aria-expanded="false"><i class="fa fa-bars"></i></button>
+    <nav id="public-menu"><a href="{{ url_for('web.index') }}">Home</a><a href="{{ url_for('web.index') }}#dokter">Dokter & Jadwal</a><a href="{{ url_for('web.index') }}#layanan">Layanan</a><a href="{{ url_for('web.login_page') }}" class="button secondary">Masuk</a><a href="{{ url_for('web.register') }}" class="button">Daftar</a></nav>
+  </header>
+  <main class="public-main">
+{% endif %}
+
+{% block content %}{% endblock %}
+
+{% if current_user.is_authenticated %}
+  </div></main>
+</div>
+<section class="notification-panel" id="notification-panel" hidden><div class="section-head"><div><span class="eyebrow">PEMBARUAN</span><h3>Notifikasi</h3></div><button class="text-button" id="read-notifications">Tandai dibaca</button></div><div id="notification-list"></div></section>
+{% elif is_auth_page %}
+  </main>
+{% else %}
+  </main>
+  <footer><span><i class="fa fa-plus-square"></i> MEDIKA HUSADA</span><small>Klinik Pratama · Kesehatan Anda, prioritas kami.</small></footer>
+{% endif %}
+
+<div id="toasts" class="toasts" aria-live="polite">{% for category,message in get_flashed_messages(with_categories=true) %}<div class="toast {{ category }}"><span>{{ message }}</span><button aria-label="Tutup notifikasi" data-dismiss>×</button></div>{% endfor %}</div>
+<dialog id="confirm-dialog"><h2>Konfirmasi tindakan</h2><p id="confirm-message"></p><div class="actions"><button class="button secondary" id="confirm-cancel">Kembali</button><button class="button" id="confirm-yes">Ya, lanjutkan</button></div></dialog>
+<dialog id="receipt-dialog" class="receipt-dialog"><div class="section-head"><h3>Struk pelayanan</h3><button class="icon-button" data-close-dialog aria-label="Tutup">×</button></div><iframe title="Struk Medika Husada" id="receipt-frame"></iframe></dialog>
+</body>
+</html>
