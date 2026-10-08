@@ -143,8 +143,9 @@ hr{border:0;border-top:1px solid var(--border);margin:24px 0}
 .timeline li.current span{color:#fff;background:var(--primary);border-color:var(--primary);box-shadow:0 0 0 4px rgba(23,194,215,.13)}
 .queue-label{font-size:15px;color:var(--primary-dark);white-space:nowrap}
 .queue-large{font-size:28px;color:var(--primary-dark)}
-.patient-banner{display:flex;align-items:center;gap:28px;flex-wrap:wrap;border-left:3px solid var(--primary)}
-.patient-banner>div{flex:1;min-width:130px}
+.patient-banner{display:grid;grid-template-columns:minmax(260px,42%) minmax(0,1fr);align-items:center;column-gap:28px;row-gap:16px;border-left:3px solid var(--primary)}
+.patient-banner>div:not(.patient-payment-qrcode){grid-column:2;min-width:0}
+.patient-banner>.patient-payment-qrcode{grid-column:1;grid-row:1 / span 4;justify-self:center;align-self:center;width:150px;min-width:150px;height:150px;margin:0}
 .patient-banner strong{display:block}
 .patient-banner small{font-size:8px;letter-spacing:.6px;margin-bottom:5px}
 .vitals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}
@@ -292,6 +293,14 @@ dialog::backdrop{background:rgba(31,42,47,.48)}
 .receipt-dialog .section-head{margin-bottom:7px}
 .print-toolbar{display:flex;gap:10px;justify-content:flex-end;margin-bottom:18px}
 .print-sheet{max-width:850px;margin:auto;padding:38px}
+.referral-body{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;min-height:310px}
+.referral-copy{flex:1;min-width:0}
+.decorative-qrcode{position:relative;width:150px;min-width:150px;height:150px;margin:54px 10px 0 12px;border:7px solid #fff;outline:1px solid #e3e9ed;background-color:#172a43;background-image:repeating-conic-gradient(#fff 0% 25%,transparent 0% 50%);background-size:16px 16px;image-rendering:pixelated}
+.decorative-qrcode:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0 7px,rgba(255,255,255,.92) 7px 10px,transparent 10px 16px),repeating-linear-gradient(90deg,transparent 0 5px,rgba(23,42,67,.92) 5px 9px,transparent 9px 16px);opacity:.8}
+.qr-finder{position:absolute;z-index:1;width:25px;height:25px;background:#fff;border:5px solid #172a43;box-shadow:inset 0 0 0 4px #fff,inset 0 0 0 8px #172a43}
+.qr-finder-top-left{top:0;left:0}.qr-finder-top-right{top:0;right:0}.qr-finder-bottom-left{bottom:17px;left:0}
+.decorative-qrcode small{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:7px;white-space:nowrap;font-size:7px;letter-spacing:1px;color:#738195}
+@media(max-width:600px){.decorative-qrcode{width:88px;min-width:88px;height:88px;margin-left:0}.qr-finder{transform:scale(.8);transform-origin:top left}.referral-body{gap:10px}}
 .document-header{text-align:center;border-bottom:2px solid var(--primary);padding-bottom:22px;margin-bottom:22px}
 .document-header .brand-icon{margin:0 auto 10px}
 .document-header h1{font-size:22px;letter-spacing:.8px;margin-bottom:4px}
@@ -348,7 +357,7 @@ dialog::backdrop{background:rgba(31,42,47,.48)}
   .timeline{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
   .timeline li{display:flex;align-items:center;gap:7px}.timeline li span{flex-shrink:0;margin:0;width:25px;height:25px}
   .vitals{grid-template-columns:repeat(2,minmax(0,1fr))}.vitals strong{font-size:18px}
-  .patient-banner{gap:16px}.patient-banner>div{min-width:105px}.patient-banner strong{font-size:11px}.patient-banner .queue-large{font-size:23px}
+  .patient-banner{grid-template-columns:minmax(110px,38%) minmax(0,1fr);column-gap:16px;row-gap:12px}.patient-banner>.patient-payment-qrcode{width:88px;min-width:88px;height:88px}.patient-banner strong{font-size:11px}.patient-banner .queue-large{font-size:23px}
   .public-nav{padding:15px 16px;position:relative}.public-menu-toggle{display:grid;place-items:center}
   .public-nav nav{display:none;position:absolute;top:70px;left:16px;right:16px;z-index:30;background:#fff;padding:16px;border-radius:.55rem;box-shadow:0 10px 30px rgba(39,48,54,.16);flex-direction:column;align-items:stretch}
   .public-nav nav.open{display:flex}.public-nav nav a{text-align:center}
