@@ -105,6 +105,7 @@ class ReferralInput(APIModel):
 class PaymentInput(APIModel):
     method: str = Field(default="Tunai", max_length=24)
     discount: int = Field(default=0, ge=0)
+    cash_received: int | None = Field(default=None, ge=1)
 
 
 class StockInput(APIModel):

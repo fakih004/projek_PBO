@@ -249,12 +249,23 @@ class BillingService:
         if method not in ('BPJS','Tunai','Transfer','QRIS','Debit'): raise ValueError('Metode pembayaran tidak valid.')
         if not v.appointment.insurance and method=='BPJS': raise ValueError('Kunjungan ini bukan BPJS.')
         status=PaymentStatus.BPJS_COVERED if v.appointment.insurance else PaymentStatus.PAID
-        WorkflowService.transition(v,[VisitStatus.WAITING_PAYMENT],VisitStatus.COMPLETED)
         inv.discount=discount
         inv.coverage,inv.payable=(BPJSPayment() if v.appointment.insurance else GeneralPayment()).amounts(inv.subtotal-discount)
+        cash_change=0
+        if method=='Tunai':
+            # Validasi nominal tunai dan hitung kembalian sebelum transaksi diselesaikan.
+            try: cash_received=int(data.get('cash_received',''))
+            except (TypeError,ValueError): raise ValueError('Nominal uang tunai harus berupa angka lebih dari nol.')
+            if cash_received<=0: raise ValueError('Nominal uang tunai harus berupa angka lebih dari nol.')
+            if cash_received<inv.payable: raise ValueError(f'Uang pasien kurang {inv.payable-cash_received:,}.')
+            cash_change=cash_received-inv.payable
+        WorkflowService.transition(v,[VisitStatus.WAITING_PAYMENT],VisitStatus.COMPLETED)
         inv.status=status
-        db.session.add(Payment(invoice=inv,admin_id=actor.id,amount=inv.payable,method=method,status=status))
+        payment=Payment(invoice=inv,admin_id=actor.id,amount=inv.payable,method=method,status=status)
+        payment.cash_change=cash_change
+        db.session.add(payment)
         v.appointment.status=AppointmentStatus.COMPLETED
+        return payment
 
 
 class PatientService:

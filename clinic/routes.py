@@ -26,9 +26,9 @@ def roles(*allowed):
 
 def mutate(fn, destination):
     try:
-        fn()
+        result=fn()
         db.session.commit()
-        message='Perubahan berhasil disimpan.'
+        message=result if isinstance(result,str) else 'Perubahan berhasil disimpan.'
         if request.headers.get('X-Requested-With')=='fetch': return jsonify(ok=True,message=message)
         flash(message,'success')
     except (ValueError,IntegrityError,OperationalError) as error:
@@ -123,6 +123,11 @@ def role_dashboard(role):
 
 def dashboard_data():
     today=date.today()
+    doctor_schedule_by_day={}
+    if current_user.role==Role.DOCTOR:
+        # Batasi jadwal dashboard ke profil dokter pada sesi yang sedang aktif.
+        doctor_schedules=DoctorSchedule.query.filter_by(doctor_id=current_user.doctor.id).order_by(DoctorSchedule.weekday).all()
+        doctor_schedule_by_day={schedule.weekday:schedule for schedule in doctor_schedules}
     visits=scoped_visits().order_by(Appointment.date.desc(),Visit.id.desc()).all()
     appointments=Appointment.query
     if current_user.role==Role.PATIENT: appointments=appointments.filter_by(patient_id=current_user.patient.id)
@@ -140,7 +145,7 @@ def dashboard_data():
         key=lambda v:(v.appointment.date,v.queue_state=='SKIPPED',v.appointment.time,v.id))
     screened=sum(bool(v.nursing and v.nursing.nurse_id==current_user.id) for v in daily) if current_user.role==Role.NURSE else 0
     return dict(visits=(visits if current_user.role==Role.PATIENT else queue_visits)[:30],appointments=appointments,metrics=metrics,today=today,daily=daily,screened=screened,
-        revenue=revenue,month_revenue=month_revenue,doctors=Doctor.query.all(),
+        revenue=revenue,month_revenue=month_revenue,doctors=Doctor.query.all(),doctor_schedule_by_day=doctor_schedule_by_day,
         low_stock=Medicine.query.filter(Medicine._stock<=Medicine.minimum).all() if current_user.role in (Role.ADMIN,Role.PHARMACIST) else [],
         active_visit=next((v for v in visits if v.status not in (VisitStatus.COMPLETED,VisitStatus.CANCELLED,VisitStatus.WAITING_VERIFICATION)),
             next((v for v in visits if v.status==VisitStatus.COMPLETED),None)))
@@ -273,7 +278,10 @@ def pharmacy(visit_id,action):
 @roles(Role.ADMIN)
 def pay(visit_id):
     v=visit_access(visit_id)
-    return mutate(lambda:BillingService.pay(v,current_user,request.form),url_for('web.receipt',visit_id=v.id))
+    def action():
+        payment=BillingService.pay(v,current_user,request.form)
+        return f'Pembayaran berhasil dikonfirmasi. Kembalian: Rp{payment.cash_change:,}.' if payment.method=='Tunai' else 'Pembayaran berhasil dikonfirmasi.'
+    return mutate(action,url_for('web.receipt',visit_id=v.id))
 
 
 @web.get('/visits/<int:visit_id>/receipt')

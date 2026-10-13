@@ -421,8 +421,10 @@ def payment(
     db: Session = Depends(get_db),
 ):
     visit = load_visit(db, visit_id, lock=True)
-    pay_invoice(db, visit, user, data)
-    return changed(db, user, "Pembayaran berhasil dikonfirmasi.")
+    payment_record = pay_invoice(db, visit, user, data)
+    result = changed(db, user, "Pembayaran berhasil dikonfirmasi.")
+    result["cash_change"] = payment_record.cash_change
+    return result
 
 
 @app.post(f"{prefix}/visits/{{visit_id}}/referral", tags=["visits"])

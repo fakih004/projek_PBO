@@ -34,9 +34,9 @@ hr{border:0;border-top:1px solid var(--border);margin:24px 0}
 .clinic-logo i{font-size:18px}
 .clinic-brand-copy strong{display:block;font-size:14px;letter-spacing:.5px;color:#273036}
 .clinic-brand-copy small{font-size:8px;letter-spacing:1.2px;color:#7b8890;margin-top:1px}
-.clinic-navbar{height:65px;padding:0;box-shadow:0 2px 12px rgba(39,48,54,.08);background:#fff;z-index:100}
-.clinic-navbar .container-fluid{height:65px;display:flex;align-items:center;justify-content:space-between;padding:0 25px 0 0}
-.clinic-navbar .navbar-brand{display:flex;align-items:center;gap:0;height:65px;width:250px;margin:0;padding:0 18px;background:var(--primary);border-radius:0}
+.clinic-navbar,.clinic-navbar.navbar-fixed-top{top:0;left:0!important;right:0!important;width:100%!important;height:65px;margin:0;padding:0;box-shadow:0 2px 12px rgba(39,48,54,.08);background:#fff;z-index:100}
+.clinic-navbar .container-fluid{width:100%;height:65px;display:flex;align-items:center;justify-content:flex-start;margin:0;padding:0 25px 0 0}
+.clinic-navbar .navbar-brand{display:flex;align-items:center;gap:0;height:65px;width:250px;flex:0 0 250px;margin:0;padding:0 18px;background:var(--primary);border-radius:0}
 .clinic-navbar .navbar-brand .btn-toggle-offcanvas{border:0;background:transparent;color:#fff;width:38px;height:38px;margin-right:8px;font-size:17px}
 .clinic-navbar .clinic-logo{background:#fff;color:var(--primary);box-shadow:none;width:34px;height:34px}
 .clinic-navbar .clinic-brand-copy strong,.clinic-navbar .clinic-brand-copy small{color:#fff}
@@ -225,9 +225,17 @@ dd{margin:0;overflow-wrap:anywhere}
 .doctor-card h3{font-size:16px}
 .doctor-card .eyebrow{font-size:8px}
 .doctor-card p{font-size:10px}
-.schedule-lines{display:flex;flex-wrap:wrap;gap:7px}
-.schedule-lines>span{padding:5px 8px;border-radius:.25rem;background:#f2f5f6;font-size:8px;color:#77838a}
-.schedule-lines strong{color:#4a5358;margin-left:4px}
+.doctor-schedule-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:14px 0 25px}
+.doctor-schedule-card{display:flex;min-height:136px;flex-direction:column;align-items:flex-start;gap:10px;padding:16px;border:1px solid var(--border);border-top:3px solid var(--primary);border-radius:.5rem;background:linear-gradient(145deg,#fff,#f8fbfc);box-shadow:0 3px 12px rgba(39,48,54,.045)}
+.doctor-schedule-card h3{margin:0;font-size:14px;color:#35434a}
+.doctor-schedule-time{margin:0;color:#596970;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+.doctor-schedule-quota{margin-top:auto;padding:4px 10px;border-radius:1rem;background:var(--primary-soft);color:var(--primary-dark);font-size:11px;font-weight:700}
+.doctor-schedule-card.is-empty{border-top-color:#cbd5d9;background:#fafbfb}
+.doctor-schedule-empty{margin:auto 0 0;color:var(--muted);font-size:11px;line-height:1.5}
+.upcoming-title{margin-top:4px}
+.doctor-card .schedule-lines{display:flex;flex-wrap:wrap;gap:7px}
+.doctor-card .schedule-lines>span{padding:5px 8px;border-radius:.25rem;background:#f2f5f6;font-size:8px;color:#77838a}
+.doctor-card .schedule-lines strong{color:#4a5358;margin-left:4px}
 .services{grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
 .services .card{border-top:2px solid transparent;transition:.2s}
 .services .card:hover{transform:translateY(-3px);border-top-color:var(--primary)}
@@ -326,7 +334,8 @@ dialog::backdrop{background:rgba(31,42,47,.48)}
   .clinic-navbar .navbar-form{display:none}
 }
 @media(max-width:768px){
-  .clinic-navbar .container-fluid{padding-right:13px}
+  .doctor-schedule-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+  .clinic-navbar .container-fluid{padding-right:13px;padding-left:0}
   .clinic-navbar .navbar-brand{width:auto;min-width:185px;padding-left:10px;background:transparent}
   .clinic-navbar .navbar-brand .btn-toggle-offcanvas{color:#637078;margin-right:2px}
   .clinic-navbar .clinic-logo{background:var(--primary);color:#fff}
@@ -346,6 +355,7 @@ dialog::backdrop{background:rgba(31,42,47,.48)}
   .register-mode .auth-box{margin:auto;width:min(690px,100%);padding:25px}
 }
 @media(max-width:540px){
+  .doctor-schedule-grid{grid-template-columns:1fr;gap:9px}.doctor-schedule-card{min-height:112px;padding:13px}
   h1{font-size:24px}h2{font-size:18px}
   .clinic-navbar .clinic-brand-copy{display:none}.clinic-navbar .navbar-brand{min-width:auto}
   .clinic-main{padding:82px 2px 20px!important}.clinic-main>.container-fluid{padding:0 13px}

@@ -392,12 +392,22 @@ def pay_invoice(db: Session, visit: Visit, admin: User, data) -> Payment:
         raise DomainError("Metode pembayaran tidak valid.")
     if not visit.appointment.insurance and method == "BPJS":
         raise DomainError("Kunjungan ini bukan BPJS.")
-    transition(visit, {VisitStatus.WAITING_PAYMENT}, VisitStatus.COMPLETED)
     status = PaymentStatus.BPJS_COVERED if visit.appointment.insurance else PaymentStatus.PAID
     net = invoice.subtotal - data.discount
     invoice.discount = data.discount
     invoice.coverage = net if visit.appointment.insurance else 0
     invoice.payable = 0 if visit.appointment.insurance else net
+    cash_change = 0
+    if method == "Tunai":
+        # Uang tunai harus valid dan cukup; selisih lebih menjadi kembalian.
+        if data.cash_received is None or data.cash_received <= 0:
+            raise DomainError("Nominal uang tunai harus berupa angka lebih dari nol.")
+        if data.cash_received < invoice.payable:
+            raise DomainError(
+                f"Uang pasien kurang Rp{invoice.payable - data.cash_received:,}."
+            )
+        cash_change = data.cash_received - invoice.payable
+    transition(visit, {VisitStatus.WAITING_PAYMENT}, VisitStatus.COMPLETED)
     invoice.status = status
     payment = Payment(
         invoice=invoice,
@@ -409,6 +419,7 @@ def pay_invoice(db: Session, visit: Visit, admin: User, data) -> Payment:
     db.add(payment)
     visit.appointment.status = AppointmentStatus.COMPLETED
     notify(db, visit.patient.user_id, LABELS[VisitStatus.COMPLETED.value])
+    payment.cash_change = cash_change
     return payment
 
 
