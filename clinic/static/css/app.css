@@ -226,12 +226,20 @@ dd{margin:0;overflow-wrap:anywhere}
 .doctor-card .eyebrow{font-size:8px}
 .doctor-card p{font-size:10px}
 .doctor-schedule-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:14px 0 25px}
-.doctor-schedule-card{display:flex;min-height:136px;flex-direction:column;align-items:flex-start;gap:10px;padding:16px;border:1px solid var(--border);border-top:3px solid var(--primary);border-radius:.5rem;background:linear-gradient(145deg,#fff,#f8fbfc);box-shadow:0 3px 12px rgba(39,48,54,.045)}
-.doctor-schedule-card h3{margin:0;font-size:14px;color:#35434a}
-.doctor-schedule-time{margin:0;color:#596970;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
-.doctor-schedule-quota{margin-top:auto;padding:4px 10px;border-radius:1rem;background:var(--primary-soft);color:var(--primary-dark);font-size:11px;font-weight:700}
-.doctor-schedule-card.is-empty{border-top-color:#cbd5d9;background:#fafbfb}
-.doctor-schedule-empty{margin:auto 0 0;color:var(--muted);font-size:11px;line-height:1.5}
+.doctor-schedule-card{position:relative;isolation:isolate;display:flex;min-height:142px;flex-direction:column;gap:10px;overflow:hidden;padding:15px 16px;border:1px solid var(--border);border-left:4px solid #16a6a1;border-radius:.75rem;background:#fff;box-shadow:0 3px 12px rgba(39,48,54,.06);transition:transform .2s ease,box-shadow .2s ease}
+.doctor-schedule-card:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(39,48,54,.12)}
+.doctor-schedule-head{position:relative;z-index:1;display:flex;width:100%;align-items:center;justify-content:space-between;gap:8px}
+.doctor-schedule-card h3{margin:0;color:#35434a;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.doctor-schedule-status{padding:3px 9px;border-radius:999px;background:#e8f7f5;color:#087c78;font-size:10px;font-weight:700}
+.doctor-schedule-time{position:relative;z-index:1;display:flex;align-items:center;gap:7px;margin:0;color:#263840;font-size:18px;font-weight:800;font-variant-numeric:tabular-nums}
+.doctor-schedule-footer{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:auto;padding-top:9px;border-top:1px solid #edf1f2}
+.doctor-schedule-quota{padding:5px 8px;border-radius:.45rem;background:var(--primary-soft);color:var(--primary-dark);font-size:10px;font-weight:700;white-space:nowrap}
+.doctor-schedule-service{color:#65767c;font-size:10px;font-weight:600;white-space:nowrap}
+.doctor-schedule-decoration{position:absolute;z-index:0;right:-17px;bottom:-23px;width:70px;height:70px;border-radius:50%;background:rgba(22,166,161,.07);pointer-events:none}
+.doctor-schedule-card.is-empty{border-left-color:#cbd5d9;background:#fafbfb}
+.doctor-schedule-card.is-empty .doctor-schedule-status{background:#eef1f2;color:#77858a}
+.doctor-schedule-card.is-empty .doctor-schedule-decoration{background:rgba(120,133,138,.07)}
+.doctor-schedule-empty{position:relative;z-index:1;margin:auto 0;color:var(--muted);font-size:12px;font-weight:600}
 .upcoming-title{margin-top:4px}
 .doctor-card .schedule-lines{display:flex;flex-wrap:wrap;gap:7px}
 .doctor-card .schedule-lines>span{padding:5px 8px;border-radius:.25rem;background:#f2f5f6;font-size:8px;color:#77838a}
