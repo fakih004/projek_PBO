@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="{{ url_for('static',filename='hospital/assets/vendor/bootstrap/css/bootstrap.min.css') }}">
   <link rel="stylesheet" href="{{ url_for('static',filename='hospital/assets/vendor/font-awesome/css/font-awesome.min.css') }}">
   <link rel="stylesheet" href="{{ url_for('static',filename='hospital/assets/css/main.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static',filename='css/app.css',v='navbar-left-20261013') }}">
+  <link rel="stylesheet" href="{{ url_for('static',filename='css/app.css',v='medical-record-letter-20261014') }}">
   <script src="{{ url_for('static',filename='js/app.js') }}" defer></script>
 </head>
 <body data-theme="light" class="font-nunito{% if current_user.is_authenticated %} workspace{% endif %}{% if embedded|default(false) %} embedded{% endif %}">
@@ -53,15 +53,15 @@
         <span class="user-initial" aria-hidden="true">{{ current_user.name[0]|upper }}</span>
         <div class="user-copy"><span>Selamat datang,</span><strong>{{ current_user.name }}</strong><small>{{ labels[current_user.role.value] }}</small></div>
       </div>
-      <ul class="nav nav-tabs clinic-sidebar-tabs"><li class="nav-item"><span class="nav-link active">MENU UTAMA</span></li></ul>
+      <div class="clinic-sidebar-heading">MENU UTAMA</div>
       <nav id="left-sidebar-nav" class="sidebar-nav">
         {% set links=[('web.dashboard','fa-dashboard','Dashboard')] %}
         {% if current_user.role.value=='patient' %}
-          {% set links=links+[('web.booking','fa-calendar-plus-o','Buat Janji Temu'),('web.appointments','fa-calendar-check-o','Janji Temu'),('web.records','fa-file-text-o','Rekam Medis Saya'),('web.referrals','fa-share-square-o','Surat Rujukan'),('web.profile','fa-user-o','Profil Saya')] %}
+          {% set links=links+[('web.booking','fa-calendar-plus-o','Buat Janji Temu'),('web.appointments','fa-calendar-check-o','Janji Temu'),('web.records','fa-file-text-o','Rekam Medis Saya'),('web.profile','fa-user-o','Profil Saya')] %}
         {% elif current_user.role.value=='admin' %}
-          {% set links=links+[('web.patients','fa-users','Pendaftaran & Pasien'),('web.appointments','fa-calendar-check-o','Jadwal & Janji Temu'),('web.doctors','fa-user-md','Dokter & Jadwal'),('web.records','fa-stethoscope','Kunjungan & Pembayaran'),('web.medicines','fa-medkit','Farmasi'),('web.reports','fa-line-chart','Laporan & Keuangan'),('web.referrals','fa-share-square-o','Rujukan'),('web.users','fa-cogs','Pengguna & Akses')] %}
+          {% set links=links+[('web.patients','fa-users','Pendaftaran & Pasien'),('web.appointments','fa-calendar-check-o','Jadwal & Janji Temu'),('web.doctors','fa-user-md','Dokter & Jadwal'),('web.records','fa-stethoscope','Kunjungan & Pembayaran'),('web.medicines','fa-medkit','Farmasi'),('web.reports','fa-line-chart','Laporan & Keuangan'),('web.users','fa-cogs','Pengguna & Akses')] %}
         {% elif current_user.role.value=='doctor' %}
-          {% set links=links+[('web.records','fa-file-text-o','Rekam Medis'),('web.referrals','fa-share-square-o','Surat Rujukan')] %}
+          {% set links=links+[('web.records','fa-file-text-o','Rekam Medis')] %}
         {% elif current_user.role.value=='pharmacist' %}
           {% set links=links+[('web.medicines','fa-medkit','Obat & Persediaan')] %}
         {% endif %}

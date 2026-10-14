@@ -300,33 +300,6 @@ def prescription(visit_id):
     return render_template('prescription.html',v=v)
 
 
-@web.post('/visits/<int:visit_id>/referral')
-@roles(Role.DOCTOR)
-def create_referral(visit_id):
-    v=visit_access(visit_id,True)
-    def action():
-        if not v.examination or v.referral or v.status==VisitStatus.COMPLETED: raise ValueError('Rujukan hanya dapat dibuat sekali setelah pemeriksaan dan sebelum kunjungan selesai.')
-        db.session.add(Referral(visit=v,number=f'RUJ-{date.today():%Y%m%d}-{v.id:05}',
-            hospital=required(request.form,'hospital',160),specialist=required(request.form,'specialist',160),
-            reason=required(request.form,'reason'),notes=request.form.get('notes','')[:4000]))
-        NotificationService.send(v.patient,'Surat rujukan tersedia pada rekam medis Anda.')
-    return mutate(action,url_for('web.visit',visit_id=v.id))
-
-
-@web.get('/visits/<int:visit_id>/referral')
-@roles(Role.PATIENT,Role.ADMIN,Role.DOCTOR)
-def referral(visit_id):
-    v=visit_access(visit_id,True)
-    if not v.referral: abort(404)
-    return render_template('referral.html',v=v)
-
-
-@web.get('/referrals')
-@roles(Role.PATIENT,Role.ADMIN,Role.DOCTOR)
-def referrals():
-    return render_template('records.html',visits=scoped_visits().join(Referral).all(),referrals_only=True)
-
-
 @web.post('/visits/<int:visit_id>/queue/<action>')
 @roles(Role.ADMIN)
 def queue_action(visit_id,action):

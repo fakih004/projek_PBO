@@ -21,8 +21,8 @@
             {% if register %}{{ patient_fields() }}{% endif %}
             <div class="form-grid{% if not register %} one{% endif %}">
               {{ field('email','Email','email') }}
-              <div class="password-field">{{ field('password','Password','password') }}<button class="text-button" type="button" data-password>Lihat</button></div>
-              {% if register %}{{ field('confirm','Konfirmasi password','password') }}{% endif %}
+              <div class="password-field">{{ field('password','Password','password') }}<button class="text-button" type="button" data-password aria-label="Tampilkan password" aria-pressed="false">Lihat</button></div>
+              {% if register %}<div class="password-field">{{ field('confirm','Konfirmasi password','password') }}<button class="text-button" type="button" data-password aria-label="Tampilkan konfirmasi password" aria-pressed="false">Lihat</button></div>{% endif %}
             </div>
             <button class="button full"><i class="fa {{ 'fa-user-plus' if register else 'fa-sign-in' }}"></i>{{ 'Daftar akun' if register else 'Masuk ke akun' }}</button>
             <div class="bottom">{{ 'Sudah memiliki akun?' if register else 'Pasien baru?' }} <a href="{{ url_for('web.login_page') if register else url_for('web.register') }}">{{ 'Masuk' if register else 'Daftar sekarang' }}</a></div>

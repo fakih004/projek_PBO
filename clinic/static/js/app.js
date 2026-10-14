@@ -31,7 +31,11 @@ document.addEventListener('click', e => {
   }
   if (e.target.closest('[data-password]')) {
     const button = e.target.closest('[data-password]'), input = button.parentElement.querySelector('input');
-    input.type = input.type === 'password' ? 'text' : 'password'; button.textContent = input.type === 'password' ? 'Lihat' : 'Sembunyikan';
+    const visible = input.type === 'password';
+    input.type = visible ? 'text' : 'password';
+    button.textContent = visible ? 'Sembunyikan' : 'Lihat';
+    button.setAttribute('aria-pressed', String(visible));
+    button.setAttribute('aria-label', `${visible ? 'Sembunyikan' : 'Tampilkan'} ${input.name === 'confirm' ? 'konfirmasi password' : 'password'}`);
   }
   if (e.target.closest('[data-print]')) window.print();
   if (e.target.closest('[data-remove-medicine]')) e.target.closest('.prescription-row').remove();
