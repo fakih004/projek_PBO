@@ -97,7 +97,9 @@
   </main>
 {% else %}
   </main>
+  {% if request.endpoint != 'web.index' %}
   <footer><span><i class="fa fa-plus-square"></i> MEDIKA HUSADA</span><small>Klinik Pratama · Kesehatan Anda, prioritas kami.</small></footer>
+  {% endif %}
 {% endif %}
 
 <div id="toasts" class="toasts" aria-live="polite">{% for category,message in get_flashed_messages(with_categories=true) %}<div class="toast {{ category }}"><span>{{ message }}</span><button aria-label="Tutup notifikasi" data-dismiss>×</button></div>{% endfor %}</div>

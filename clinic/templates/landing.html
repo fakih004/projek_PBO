@@ -3,4 +3,69 @@
 <section id="dokter"><div class="section-head"><div><span class="eyebrow">TEMUKAN DOKTER ANDA</span><h2>Kenali dokter, atur waktu Anda.</h2></div><span class="badge">Jadwal hari ini · {{ today }}</span></div><div class="grid two">{% for d in doctors %}<article class="card doctor-card"><div class="doctor-avatar">{{ 'MF' if loop.first else 'AF' }}</div><div><span class="eyebrow">{{ d.specialty }}</span><h3>{{ d.user.name }}</h3><p class="muted">Konsultasi {{ d.fee|rupiah }} · BPJS tersedia</p><div class="schedule-lines">{% for s in d.schedules %}<span>{{ ['Sen','Sel','Rab','Kam','Jum','Sab','Min'][s.weekday] }} <strong>{{ s.start }}–{{ s.end }}</strong></span>{% endfor %}</div>{% set available=availability[d.id]|selectattr('available')|list|length %}<p><span class="badge {{ 'warning' if not available }}">{{ available }} slot tersedia hari ini</span></p><a href="{{ url_for('web.booking',doctor_id=d.id) }}" class="button secondary">Pilih jadwal →</a></div></article>{% else %}<div class="card empty">Jadwal dokter belum tersedia.</div>{% endfor %}</div></section>
 <section id="layanan"><span class="eyebrow">LAYANAN KAMI</span><h2>Satu klinik, berbagai kebutuhan.</h2><div class="grid services">{% for icon,title,desc in [('✚','Pemeriksaan umum','Konsultasi dan penanganan keluhan kesehatan Anda.'),('♡','Kesehatan wanita','Pelayanan kandungan dan kesehatan perempuan.'),('◉','Pemeriksaan awal','Pencatatan tanda vital sebelum bertemu dokter.'),('⊞','Resep & farmasi','Resep terhubung langsung dengan layanan apotek.'),('✓','Layanan BPJS','Rincian pembiayaan transparan untuk setiap kunjungan.'),('▤','Rekam medis digital','Riwayat kesehatan pribadi yang mudah diakses.')] %}<article class="card"><span class="service-icon">{{ icon }}</span><h3>{{ title }}</h3><p class="muted">{{ desc }}</p></article>{% endfor %}</div></section>
 <section class="journey"><span class="eyebrow">ALUR PELAYANAN</span><h2>Lebih jelas di setiap langkah.</h2><div class="journey-steps">{% for step in ['Daftar','Verifikasi','Perawat','Dokter','Farmasi','Pembayaran','Selesai'] %}<div><span>{{ '%02d'|format(loop.index) }}</span><strong>{{ step }}</strong></div>{% endfor %}</div></section>
+<style>
+  .landing-footer{position:relative;left:50%;width:100vw;max-width:100vw;margin:48px 0 0 -50vw;box-sizing:border-box;overflow:hidden;padding:48px 24px 24px;color:#475569;background-color:#f8fafc;background-image:radial-gradient(rgba(13,148,136,.08) .8px,transparent .8px),linear-gradient(180deg,#fff 0%,#f8fafc 100%);background-size:18px 18px,100% 100%;border-top:4px solid #14b8a6}
+  .landing-footer-glow{position:absolute;width:290px;height:290px;border-radius:50%;filter:blur(70px);pointer-events:none}
+  .landing-footer-glow-one{top:-150px;left:18%;background:rgba(20,184,166,.07)}
+  .landing-footer-glow-two{right:4%;bottom:-190px;background:rgba(59,130,246,.045)}
+  .landing-footer-inner{position:relative;z-index:1;width:min(100%,1160px);margin:0 auto}
+  .landing-footer-grid{display:grid;grid-template-columns:1fr;gap:38px}
+  .landing-footer-brand{display:inline-flex;align-items:center;gap:12px;color:#1e293b;text-decoration:none;font-size:18px;font-weight:700;letter-spacing:.06em}
+  .landing-footer-mark{display:flex;align-items:center;justify-content:center;flex:0 0 42px;width:42px;height:42px;box-sizing:border-box;padding:0;border-radius:13px;background:linear-gradient(135deg,#14b8a6,#0ea5e9);color:#fff;box-shadow:0 5px 16px rgba(20,184,166,.22)}
+  .landing-footer-plus{display:block;margin:-1px 0 0;font-size:28px;font-weight:700;line-height:1;color:#fff;user-select:none}
+  .landing-footer-description{max-width:340px;margin:16px 0 0;color:#64748b;font-size:13px;line-height:1.75}
+  .landing-footer-heading{margin:0 0 18px;color:#0f8b83;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+  .landing-footer-links,.landing-footer-contacts{display:flex;flex-direction:column;align-items:flex-start;gap:13px}
+  .landing-footer-links a{color:#64748b;font-size:13px;font-weight:500;text-decoration:none;transition:color .18s ease}
+  .landing-footer-links a:hover{color:#0f8b83}
+  .landing-footer-contact{display:flex;align-items:center;gap:11px;color:#475569;font-size:13px;text-decoration:none;transition:color .18s ease}
+  .landing-footer-contact:hover{color:#0f8b83}
+  .landing-footer-contact-icon{display:flex;align-items:center;justify-content:center;flex:0 0 36px;width:36px;height:36px;box-sizing:border-box;padding:0;border-radius:50%;background:#f1f5f9;line-height:1;text-align:center;transition:background .18s ease}
+  .landing-footer-contact-icon .fa{display:flex;align-items:center;justify-content:center;width:1em;height:1em;margin:0;padding:0;line-height:1}
+  .landing-footer-contact:hover .landing-footer-contact-icon{filter:brightness(.97)}
+  .landing-footer-contact-icon.instagram{color:#ec4899;background:#fdf2f8}
+  .landing-footer-contact-icon.facebook{color:#2563eb;background:#eff6ff}
+  .landing-footer-contact-icon.youtube{color:#ef4444;background:#fef2f2}
+  .landing-footer-contact-icon.whatsapp{color:#16a34a;background:#f0fdf4}
+  .landing-footer-bottom{margin-top:48px;padding-top:22px;border-top:1px solid #e2e8f0;text-align:center}
+  .landing-footer-bottom small{color:#94a3b8;font-size:11px}
+  @media (min-width:640px){.landing-footer-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:42px}}
+  @media (min-width:960px){.landing-footer-grid{grid-template-columns:1.25fr .8fr 1fr;gap:56px}}
+</style>
+<footer id="kontak" class="landing-footer w-full">
+  <span class="landing-footer-glow landing-footer-glow-one" aria-hidden="true"></span>
+  <span class="landing-footer-glow landing-footer-glow-two" aria-hidden="true"></span>
+  <div class="landing-footer-inner">
+    <div class="landing-footer-grid">
+      <div>
+        <a href="{{ url_for('web.index') }}" aria-label="Medika Husada Beranda" class="landing-footer-brand">
+          <span aria-hidden="true" class="landing-footer-mark"><span class="landing-footer-plus">+</span></span>
+          <span>MEDIKA HUSADA</span>
+        </a>
+        <p class="landing-footer-description">Klinik Pratama · Kesehatan Anda, prioritas kami. Menyediakan pelayanan kesehatan terintegrasi dengan sepenuh hati.</p>
+      </div>
+      <div>
+        <h2 class="landing-footer-heading">Tautan Cepat</h2>
+        <nav aria-label="Tautan cepat" class="landing-footer-links">
+          <a href="{{ url_for('web.index') }}">Beranda</a>
+          <a href="{{ url_for('web.index') }}#dokter">Dokter &amp; Jadwal</a>
+          <a href="{{ url_for('web.index') }}#layanan">Layanan</a>
+          <a href="#kontak">Hubungi Kami</a>
+        </nav>
+      </div>
+      <div>
+        <h2 class="landing-footer-heading">Hubungi Kami</h2>
+        <nav aria-label="Sosial media dan kontak" class="landing-footer-contacts">
+          <a class="landing-footer-contact" href="https://www.instagram.com/medikahusada.official/" target="_blank" rel="noopener noreferrer"><span class="landing-footer-contact-icon instagram"><i class="fa fa-instagram" aria-hidden="true"></i></span> @medikahusada.official</a>
+          <a class="landing-footer-contact" href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer"><span class="landing-footer-contact-icon facebook"><i class="fa fa-facebook" aria-hidden="true"></i></span> Klinik Pratama Medika Husada</a>
+          <a class="landing-footer-contact" href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer"><span class="landing-footer-contact-icon youtube"><i class="fa fa-youtube-play" aria-hidden="true"></i></span> Medika Husada TV</a>
+          <a class="landing-footer-contact" href="tel:+6281234567890"><span class="landing-footer-contact-icon whatsapp"><i class="fa fa-whatsapp" aria-hidden="true"></i></span> +62 812-3456-7890</a>
+        </nav>
+      </div>
+    </div>
+    <div class="landing-footer-bottom">
+      <small>© 2026 Medika Husada - Klinik Pratama. All rights reserved.</small>
+    </div>
+  </div>
+</footer>
 {% endblock %}
