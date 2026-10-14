@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="{{ url_for('static',filename='hospital/assets/vendor/bootstrap/css/bootstrap.min.css') }}">
   <link rel="stylesheet" href="{{ url_for('static',filename='hospital/assets/vendor/font-awesome/css/font-awesome.min.css') }}">
   <link rel="stylesheet" href="{{ url_for('static',filename='hospital/assets/css/main.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static',filename='css/app.css',v='medical-record-letter-20261014') }}">
+  <link rel="stylesheet" href="{{ url_for('static',filename='css/app.css',v='admin-search-polish-20261015') }}">
   <script src="{{ url_for('static',filename='js/app.js') }}" defer></script>
 </head>
 <body data-theme="light" class="font-nunito{% if current_user.is_authenticated %} workspace{% endif %}{% if embedded|default(false) %} embedded{% endif %}">
@@ -33,7 +33,7 @@
       <div class="navbar-right">
         {% if current_user.role.value=='admin' %}
         <form class="navbar-form search-form" action="{{ url_for('web.patients') }}">
-          <input name="q" class="form-control" placeholder="Cari nama, NIK, atau nomor RM…" aria-label="Cari pasien">
+          <input name="q" class="form-control" placeholder="Cari pasien: nama, NIK, atau No. RM" aria-label="Cari pasien berdasarkan nama, NIK, atau nomor rekam medis">
           <button type="submit" class="btn btn-default" aria-label="Cari"><i class="icon-magnifier"></i></button>
         </form>
         {% endif %}
@@ -59,11 +59,13 @@
         {% if current_user.role.value=='patient' %}
           {% set links=links+[('web.booking','fa-calendar-plus-o','Buat Janji Temu'),('web.appointments','fa-calendar-check-o','Janji Temu'),('web.records','fa-file-text-o','Rekam Medis Saya'),('web.profile','fa-user-o','Profil Saya')] %}
         {% elif current_user.role.value=='admin' %}
-          {% set links=links+[('web.patients','fa-users','Pendaftaran & Pasien'),('web.appointments','fa-calendar-check-o','Jadwal & Janji Temu'),('web.doctors','fa-user-md','Dokter & Jadwal'),('web.records','fa-stethoscope','Kunjungan & Pembayaran'),('web.medicines','fa-medkit','Farmasi'),('web.reports','fa-line-chart','Laporan & Keuangan'),('web.users','fa-cogs','Pengguna & Akses')] %}
+          {% set links=links+[('web.patients','fa-users','Pendaftaran & Pasien'),('web.appointments','fa-calendar-check-o','Jadwal & Janji Temu'),('web.doctors','fa-user-md','Dokter & Jadwal'),('web.records','fa-stethoscope','Kunjungan & Rekam Medis'),('web.medicines','fa-medkit','Farmasi'),('web.supplier_purchases','fa-check-square-o','Persetujuan Supplier'),('web.reports','fa-line-chart','Laporan & Keuangan'),('web.users','fa-cogs','Pengguna & Akses')] %}
         {% elif current_user.role.value=='doctor' %}
           {% set links=links+[('web.records','fa-file-text-o','Rekam Medis')] %}
         {% elif current_user.role.value=='pharmacist' %}
-          {% set links=links+[('web.medicines','fa-medkit','Obat & Persediaan')] %}
+          {% set links=links+[('web.medicines','fa-medkit','Obat & Persediaan'),('web.supplier_purchases','fa-shopping-cart','Pembelian Supplier')] %}
+        {% elif current_user.role.value=='cashier' %}
+          {% set links=links+[('web.cashier_payments','fa-credit-card','Pembayaran')] %}
         {% endif %}
         <ul class="metismenu li_animation_delay">
           {% for endpoint,icon,label in links %}

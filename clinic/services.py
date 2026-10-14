@@ -14,9 +14,12 @@ LABELS={
     'WAITING_NURSE':'Menunggu pemeriksaan perawat', 'WAITING_DOCTOR':'Menunggu dokter',
     'WITH_DOCTOR':'Pemeriksaan dokter', 'WAITING_PHARMACY':'Resep diterima apotek',
     'PHARMACY_PROCESSING':'Obat sedang disiapkan', 'MEDICINE_READY':'Obat siap diambil',
-    'WAITING_PAYMENT':'Silakan menuju bagian pembayaran', 'COMPLETED':'Pelayanan selesai. Semoga lekas sembuh.',
+    'WAITING_PAYMENT':'Silakan menuju kasir', 'COMPLETED':'Pelayanan selesai. Semoga lekas sembuh.',
     'UNPAID':'Belum dibayar', 'PAID':'Lunas', 'BPJS_COVERED':'Ditanggung BPJS',
-    'patient':'Pasien', 'admin':'Admin', 'nurse':'Perawat', 'doctor':'Dokter', 'pharmacist':'Apoteker',
+    'PENDING_PURCHASE_APPROVAL':'Menunggu persetujuan pembelian', 'PURCHASE_APPROVED':'Disetujui · menunggu barang',
+    'PURCHASE_REJECTED':'Pembelian ditolak', 'PAYMENT_PENDING':'Menunggu persetujuan pembayaran',
+    'PAYMENT_REJECTED':'Pembayaran ditolak',
+    'patient':'Pasien', 'admin':'Admin', 'nurse':'Perawat', 'doctor':'Dokter', 'pharmacist':'Apoteker', 'cashier':'Kasir',
 }
 
 

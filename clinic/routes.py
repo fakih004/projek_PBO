@@ -46,6 +46,7 @@ def visit_access(visit_id, clinical=False):
     if role==Role.DOCTOR and v.doctor.user_id!=current_user.id: abort(403)
     if role==Role.NURSE and v.status!=VisitStatus.WAITING_NURSE and not (v.nursing and v.nursing.nurse_id==current_user.id): abort(403)
     if role==Role.PHARMACIST and (clinical or not v.prescription): abort(403)
+    if role==Role.CASHIER and not v.invoice: abort(403)
     return v
 
 
@@ -63,6 +64,7 @@ def scoped_visits():
     elif current_user.role==Role.NURSE:
         query=query.outerjoin(NursingAssessment).filter(or_(Visit.status==VisitStatus.WAITING_NURSE,NursingAssessment.nurse_id==current_user.id))
     elif current_user.role==Role.PHARMACIST: query=query.join(Prescription)
+    elif current_user.role==Role.CASHIER: query=query.filter(Visit.status==VisitStatus.WAITING_PAYMENT)
     return query
 
 
@@ -118,6 +120,7 @@ def dashboard():
 @login_required
 def role_dashboard(role):
     if role!=current_user.role.value: abort(403)
+    if current_user.role==Role.CASHIER: return redirect(url_for('web.cashier_payments'))
     return render_template('dashboard.html',**dashboard_data())
 
 
@@ -274,8 +277,15 @@ def pharmacy(visit_id,action):
     return mutate(lambda:PharmacyService.process(v,action,current_user),url_for('web.visit',visit_id=v.id))
 
 
+@web.get('/cashier/payments')
+@roles(Role.CASHIER)
+def cashier_payments():
+    visits=Visit.query.join(Appointment).filter(Visit.status==VisitStatus.WAITING_PAYMENT).order_by(Appointment.date,Appointment.time,Visit.id).all()
+    return render_template('cashier_payments.html',visits=visits)
+
+
 @web.post('/visits/<int:visit_id>/pay')
-@roles(Role.ADMIN)
+@roles(Role.CASHIER)
 def pay(visit_id):
     v=visit_access(visit_id)
     def action():
@@ -285,7 +295,7 @@ def pay(visit_id):
 
 
 @web.get('/visits/<int:visit_id>/receipt')
-@roles(Role.PATIENT,Role.ADMIN)
+@roles(Role.PATIENT,Role.ADMIN,Role.CASHIER)
 def receipt(visit_id):
     v=visit_access(visit_id)
     if not v.invoice: abort(404)
@@ -370,9 +380,84 @@ def medicines():
             med.expiry=date.fromisoformat(request.form['expiry']) if request.form.get('expiry') else None
             db.session.add(med); db.session.flush()
             delta=number(request.form,'delta',-1000000,1000000,True)
+            if delta>0 and current_user.role==Role.PHARMACIST:
+                raise ValueError('Restok masuk harus diajukan melalui pembelian supplier dan disetujui admin.')
             if delta: med.change_stock(delta,required(request.form,'reason',200),current_user.id)
         return mutate(save,url_for('web.medicines'))
     return render_template('medicines.html',medicines=Medicine.query.order_by(Medicine.name).all(),movements=StockMovement.query.order_by(StockMovement.id.desc()).limit(40).all(),today=date.today())
+
+
+@web.route('/supplier-purchases',methods=['GET','POST'])
+@login_required
+def supplier_purchases():
+    role=current_user.role
+    if role not in (Role.ADMIN,Role.PHARMACIST): abort(403)
+    if request.method=='POST':
+        if role!=Role.PHARMACIST: abort(403)
+        def create_request():
+            medicine=db.get_or_404(Medicine,request.form.get('medicine_id',type=int))
+            purchase=SupplierPurchase(supplier=required(request.form,'supplier',160),medicine=medicine,
+                pharmacist_id=current_user.id,requested_quantity=number(request.form,'quantity',1,1000000,True),
+                estimated_unit_cost=number(request.form,'estimated_unit_cost',1,100000000,True),
+                reason=required(request.form,'reason',400))
+            db.session.add(purchase)
+        return mutate(create_request,url_for('web.supplier_purchases'))
+    query=SupplierPurchase.query.order_by(SupplierPurchase.created_at.desc(),SupplierPurchase.id.desc())
+    if role==Role.PHARMACIST: query=query.filter_by(pharmacist_id=current_user.id)
+    return render_template('supplier_purchases.html',purchases=query.all(),medicines=Medicine.query.order_by(Medicine.name).all())
+
+
+@web.post('/supplier-purchases/<int:purchase_id>/<action>')
+@login_required
+def supplier_purchase_action(purchase_id,action):
+    purchase=db.get_or_404(SupplierPurchase,purchase_id)
+    def update_purchase():
+        role=current_user.role
+        if action in ('approve_purchase','reject_purchase','approve_payment','reject_payment'):
+            if role!=Role.ADMIN: abort(403)
+        elif action in ('receive','resubmit_payment'):
+            if role!=Role.PHARMACIST or purchase.pharmacist_id!=current_user.id: abort(403)
+        else:
+            abort(404)
+
+        if action=='approve_purchase':
+            if purchase.status!=SupplierPurchaseStatus.PENDING_PURCHASE_APPROVAL: raise ValueError('Pengajuan pembelian tidak sedang menunggu keputusan.')
+            purchase.status=SupplierPurchaseStatus.PURCHASE_APPROVED
+            purchase.purchase_decided_by=current_user.id; purchase.purchase_decided_at=datetime.now()
+            purchase.purchase_decision_note=request.form.get('note','')[:400]
+        elif action=='reject_purchase':
+            if purchase.status!=SupplierPurchaseStatus.PENDING_PURCHASE_APPROVAL: raise ValueError('Pengajuan pembelian tidak sedang menunggu keputusan.')
+            purchase.status=SupplierPurchaseStatus.PURCHASE_REJECTED
+            purchase.purchase_decided_by=current_user.id; purchase.purchase_decided_at=datetime.now()
+            purchase.purchase_decision_note=required(request.form,'note',400)
+        elif action=='receive':
+            if purchase.status!=SupplierPurchaseStatus.PURCHASE_APPROVED: raise ValueError('Pembelian harus disetujui sebelum barang diterima.')
+            received_quantity=number(request.form,'received_quantity',1,1000000,True)
+            if received_quantity>purchase.requested_quantity: raise ValueError('Jumlah diterima tidak boleh melebihi jumlah yang disetujui admin.')
+            actual_unit_cost=number(request.form,'actual_unit_cost',1,100000000,True)
+            invoice=request.form.get('supplier_invoice','').strip()[:100]
+            movement_reason=f'Pembelian supplier {purchase.supplier}; faktur {invoice or "-"}; pengajuan #{purchase.id}'[:200]
+            purchase.medicine.change_stock(received_quantity,movement_reason,current_user.id)
+            purchase.received_quantity=received_quantity; purchase.actual_unit_cost=actual_unit_cost
+            purchase.supplier_invoice=invoice; purchase.received_at=datetime.now()
+            purchase.status=SupplierPurchaseStatus.PAYMENT_PENDING
+        elif action=='approve_payment':
+            if purchase.status!=SupplierPurchaseStatus.PAYMENT_PENDING: raise ValueError('Pembayaran supplier tidak sedang menunggu persetujuan.')
+            purchase.status=SupplierPurchaseStatus.PAID
+            purchase.payment_decided_by=current_user.id; purchase.payment_decided_at=datetime.now()
+            purchase.payment_decision_note=request.form.get('note','')[:400]
+        elif action=='reject_payment':
+            if purchase.status!=SupplierPurchaseStatus.PAYMENT_PENDING: raise ValueError('Pembayaran supplier tidak sedang menunggu persetujuan.')
+            purchase.status=SupplierPurchaseStatus.PAYMENT_REJECTED
+            purchase.payment_decided_by=current_user.id; purchase.payment_decided_at=datetime.now()
+            purchase.payment_decision_note=required(request.form,'note',400)
+        elif action=='resubmit_payment':
+            if purchase.status!=SupplierPurchaseStatus.PAYMENT_REJECTED: raise ValueError('Pembayaran supplier tidak ditolak.')
+            purchase.actual_unit_cost=number(request.form,'actual_unit_cost',1,100000000,True)
+            purchase.supplier_invoice=request.form.get('supplier_invoice','').strip()[:100]
+            purchase.status=SupplierPurchaseStatus.PAYMENT_PENDING
+            purchase.payment_decided_by=None; purchase.payment_decided_at=None; purchase.payment_decision_note=''
+    return mutate(update_purchase,url_for('web.supplier_purchases'))
 
 
 @web.route('/admin/doctors',methods=['GET','POST'])
@@ -430,7 +515,7 @@ def users():
                 if request.form.get('password'): user.set_password(request.form['password'])
             else:
                 role=request.form.get('role')
-                if role not in ('admin','nurse','pharmacist'): raise ValueError('Gunakan menu Dokter/Pasien untuk peran tersebut.')
+                if role not in ('admin','nurse','pharmacist','cashier'): raise ValueError('Gunakan menu Dokter/Pasien untuk peran tersebut.')
                 user=User(email=required(request.form,'email',160).lower(),name=required(request.form,'name',160),role=Role(role))
                 if '@' not in user.email: raise ValueError('Email tidak valid.')
                 user.set_password(required(request.form,'password',128)); db.session.add(user)

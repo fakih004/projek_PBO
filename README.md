@@ -42,12 +42,13 @@ Konfigurasi MySQL bawaan adalah `root` tanpa password pada `127.0.0.1:3306`. Sal
 | Peran | Email | Password |
 |---|---|---|
 | Admin | `admin@medikahusada.local` | `Admin123!` |
+| Kasir | `fatur@medikahusada.local` | `Kasir123!` |
 | Perawat | `perawat@medikahusada.local` | `Perawat123!` |
 | Dokter | `fakih@medikahusada.local` | `Dokter123!` |
 | Apoteker | `apoteker@medikahusada.local` | `Apoteker123!` |
 | Pasien | `pasien@medikahusada.local` | `Pasien123!` |
 
-Seed bersifat idempoten: seed dilewati bila database sudah memiliki pengguna.
+Seed bersifat idempoten: akun demo yang belum ada ditambahkan, sementara data pengguna dan operasional yang sudah ada tidak direset.
 
 ## Pengujian
 

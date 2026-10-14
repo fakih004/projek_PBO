@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% from 'macros.html' import badge %}
+{% block content %}
+<div class="page-head"><div><span class="eyebrow">MEJA KASIR</span><h1>Antrean pembayaran</h1><p class="muted">Pilih kunjungan untuk memeriksa tagihan dan mengonfirmasi pembayaran.</p></div><span class="badge date-label">{{ visits|length }} tagihan menunggu</span></div>
+<section class="card">
+  <div class="table-wrap"><table>
+    <thead><tr><th>Pasien</th><th>Jadwal</th><th>Dokter</th><th>Total tagihan</th><th>Status</th><th>Aksi</th></tr></thead>
+    <tbody>
+      {% for v in visits %}
+      <tr>
+        <td><strong>{{ v.patient.user.name }}</strong><small>{{ v.patient.mr }}</small></td>
+        <td>{{ v.appointment.date }}<small>{{ v.appointment.time }} · {{ 'BPJS' if v.appointment.insurance else 'Umum' }}</small></td>
+        <td>{{ v.doctor.user.name }}</td>
+        <td><strong>{{ v.invoice.payable|rupiah }}</strong></td>
+        <td>{{ badge(v.invoice.status) }}</td>
+        <td><a class="button small" href="{{ url_for('web.visit',visit_id=v.id) }}">Proses pembayaran →</a></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="empty">Tidak ada pembayaran yang menunggu diproses.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table></div>
+</section>
+{% endblock %}

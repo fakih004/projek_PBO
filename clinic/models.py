@@ -11,6 +11,7 @@ class Role(str, Enum):
     NURSE='nurse'
     DOCTOR='doctor'
     PHARMACIST='pharmacist'
+    CASHIER='cashier'
 
 
 class VisitStatus(str, Enum):
@@ -40,6 +41,15 @@ class PaymentStatus(str, Enum):
     UNPAID='UNPAID'
     PAID='PAID'
     BPJS_COVERED='BPJS_COVERED'
+
+
+class SupplierPurchaseStatus(str, Enum):
+    PENDING_PURCHASE_APPROVAL='PENDING_PURCHASE_APPROVAL'
+    PURCHASE_APPROVED='PURCHASE_APPROVED'
+    PURCHASE_REJECTED='PURCHASE_REJECTED'
+    PAYMENT_PENDING='PAYMENT_PENDING'
+    PAYMENT_REJECTED='PAYMENT_REJECTED'
+    PAID='PAID'
 
 
 class PrescriptionStatus(str, Enum):
@@ -219,7 +229,39 @@ class StockMovement(db.Model):
     actor_id=db.Column(db.ForeignKey('user.id'), nullable=False)
     visit_id=db.Column(db.ForeignKey('visit.id'))
     created_at=db.Column(db.DateTime, default=datetime.now)
-    medicine=db.relationship(Medicine)
+    medicine=db.relationship('Medicine')
+
+
+class SupplierPurchase(db.Model):
+    id=db.Column(db.Integer, primary_key=True)
+    supplier=db.Column(db.String(160), nullable=False)
+    medicine_id=db.Column(db.ForeignKey('medicine.id'), nullable=False)
+    pharmacist_id=db.Column(db.ForeignKey('user.id'), nullable=False)
+    requested_quantity=db.Column(db.Integer, nullable=False)
+    estimated_unit_cost=db.Column(db.Integer, nullable=False)
+    reason=db.Column(db.String(400), nullable=False)
+    status=db.Column(db.Enum(SupplierPurchaseStatus), default=SupplierPurchaseStatus.PENDING_PURCHASE_APPROVAL, nullable=False)
+    created_at=db.Column(db.DateTime, default=datetime.now, nullable=False)
+    purchase_decided_by=db.Column(db.ForeignKey('user.id'))
+    purchase_decided_at=db.Column(db.DateTime)
+    purchase_decision_note=db.Column(db.String(400), default='')
+    received_quantity=db.Column(db.Integer)
+    actual_unit_cost=db.Column(db.Integer)
+    supplier_invoice=db.Column(db.String(100), default='')
+    received_at=db.Column(db.DateTime)
+    payment_decided_by=db.Column(db.ForeignKey('user.id'))
+    payment_decided_at=db.Column(db.DateTime)
+    payment_decision_note=db.Column(db.String(400), default='')
+    medicine=db.relationship('Medicine')
+    pharmacist=db.relationship('User', foreign_keys=[pharmacist_id])
+    purchase_approver=db.relationship('User', foreign_keys=[purchase_decided_by])
+    payment_approver=db.relationship('User', foreign_keys=[payment_decided_by])
+
+    @property
+    def requested_total(self): return self.requested_quantity*self.estimated_unit_cost
+
+    @property
+    def payment_total(self): return (self.received_quantity or 0)*(self.actual_unit_cost or 0)
 
 
 class Prescription(db.Model):

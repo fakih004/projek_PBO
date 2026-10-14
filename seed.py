@@ -7,6 +7,7 @@ from clinic.services import AppointmentService, NotificationService
 
 def seed_data(demo=True):
     accounts=[('admin','Siti Rahmawati',Role.ADMIN,'Admin123!'),
+        ('fatur','Fatur',Role.CASHIER,'Kasir123!'),
         ('perawat','Ns. Dian Lestari',Role.NURSE,'Perawat123!'),
         ('apoteker','apt. Rahmat Hidayat',Role.PHARMACIST,'Apoteker123!'),
         ('fakih','dr. Muhammad Fakih Nabal',Role.DOCTOR,'Dokter123!'),
