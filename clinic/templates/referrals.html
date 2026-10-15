@@ -1,0 +1,22 @@
+{% extends 'base.html' %}{% from 'macros.html' import pagination,csrf %}
+{% block content %}
+<div class="page-head"><div><span class="eyebrow">DOKUMEN KLINIS</span><h1>Surat rujukan</h1><p class="muted">Lihat surat rujukan yang diterbitkan untuk pasien.</p></div></div>
+<section class="card">
+  <form class="filter-bar" role="search"><input name="q" value="{{ request.args.get('q','') }}" placeholder="Cari pasien, nomor surat, atau rumah sakit" aria-label="Cari surat rujukan"><button class="button secondary">Cari</button></form>
+  <details class="card"><summary>Catat surat rujukan lama</summary><p class="muted">Gunakan untuk surat yang sudah pernah dibuat tetapi belum tercatat di sistem.</p>
+    <form method="post" action="{{ url_for('web.archive_referral') }}">{{ csrf() }}<div class="form-grid"><label class="form-span-two">Kunjungan pasien *<select name="visit_id" required><option value="">Pilih pasien dan kunjungan</option>{% for v in legacy_visits %}<option value="{{ v.id }}">{{ v.patient.user.name }} · {{ v.patient.mr }} · {{ v.appointment.date }} · Kunjungan #{{ v.id }}</option>{% endfor %}</select></label><label>Nomor surat lama *<input name="number" maxlength="40" required></label><label>Tanggal surat *<input name="issued_date" type="date" required></label><label>Spesialis tujuan *<input name="specialist" maxlength="160" required></label><label>Rumah sakit / klinik tujuan *<input name="hospital" maxlength="160" required></label><label class="form-span-two">Alasan rujukan *<textarea name="reason" rows="3" maxlength="4000" required></textarea></label><label class="form-span-two">Catatan tambahan<textarea name="notes" rows="2" maxlength="4000"></textarea></label></div><button class="button" {% if not legacy_visits %}disabled{% endif %}>Catat surat lama</button>
+    {% if not legacy_visits %}<small>Belum ada kunjungan yang bisa dipilih. Surat yang sudah tercatat dan permintaan yang menunggu tidak ditampilkan di sini.</small>{% endif %}</form>
+  </details>
+  <div class="section-head"><div><h2>Permintaan dari dokter</h2><p class="muted">Tinjau tujuan dan alasan rujukan, lalu lengkapi surat untuk menerbitkannya.</p></div></div>
+  {% for item in requests %}<article class="card"><div class="section-head"><div><span class="eyebrow">KUNJUNGAN #{{ item.visit.id }} · {{ item.visit.appointment.date }}</span><h3>{{ item.visit.patient.user.name }} <small>({{ item.visit.patient.mr }})</small></h3></div><span class="badge">Menunggu dibuat</span></div>
+    <p><strong>Tujuan:</strong> {{ item.specialist }} · {{ item.hospital }}</p><p class="preserve"><strong>Alasan:</strong> {{ item.reason }}</p>
+    <form method="post" action="{{ url_for('web.issue_referral',request_id=item.id) }}">{{ csrf() }}<div class="form-grid"><label>Spesialis tujuan *<input name="specialist" maxlength="160" value="{{ item.specialist }}" required></label><label>Rumah sakit / klinik tujuan *<input name="hospital" maxlength="160" value="{{ item.hospital }}" required></label><label class="form-span-two">Catatan admin<textarea name="notes" rows="2" maxlength="4000"></textarea></label></div><button class="button">Buat surat rujukan</button></form>
+  </article>{% else %}<p class="empty">Tidak ada permintaan rujukan yang menunggu.</p>{% endfor %}
+  <div class="section-head"><div><h2>Surat yang sudah dibuat</h2><p class="muted">Surat rujukan yang sudah diterbitkan admin.</p></div></div>
+  <div class="table-wrap"><table><thead><tr><th>Nomor surat</th><th>Pasien</th><th>Tujuan rujukan</th><th>Tanggal</th><th>Aksi</th></tr></thead><tbody>
+    {% for v in page.items %}<tr><td><strong>{{ v.referral.number }}</strong></td><td><strong>{{ v.patient.user.name }}</strong><small>{{ v.patient.mr }}</small></td><td>{{ v.referral.specialist }}<small>{{ v.referral.hospital }}</small></td><td>{{ v.referral.created_at.strftime('%d/%m/%Y') }}</td><td><a class="button secondary small" href="{{ url_for('web.visit',visit_id=v.id) }}">Lihat surat →</a></td></tr>
+    {% else %}<tr><td colspan="5" class="empty">Belum ada surat rujukan yang sesuai.</td></tr>{% endfor %}
+  </tbody></table></div>
+  {{ pagination(page) }}
+</section>
+{% endblock %}

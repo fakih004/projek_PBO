@@ -225,6 +225,78 @@ def records():
     return render_template('records.html',visits=scoped_visits().order_by(Visit.id.desc()).all())
 
 
+@web.get('/admin/referrals')
+@roles(Role.ADMIN)
+def referrals():
+    q=request.args.get('q','').strip()
+    requests=ReferralRequest.query.filter(ReferralRequest.status=='PENDING').join(Visit).join(Appointment).join(Patient,Appointment.patient_id==Patient.id).join(User,Patient.user_id==User.id)
+    issued=Visit.query.join(Appointment).join(Referral)
+    if q:
+        match=or_(User.name.contains(q),Patient.mr.contains(q))
+        requests=requests.filter(or_(match,ReferralRequest.hospital.contains(q),ReferralRequest.specialist.contains(q),ReferralRequest.reason.contains(q)))
+        issued=issued.join(Patient,Appointment.patient_id==Patient.id).join(User,Patient.user_id==User.id).filter(or_(
+            match,Referral.number.contains(q),Referral.hospital.contains(q),Referral.specialist.contains(q)))
+    page=db.paginate(issued.order_by(Referral.created_at.desc(),Visit.id.desc()).statement,
+        page=request.args.get('page',1,type=int),per_page=12,error_out=False)
+    legacy_visits=Visit.query.join(Appointment).filter(Visit.examination.has(),
+        ~Visit.referral.has(),~Visit.referral_request.has()).order_by(Appointment.date.desc(),Visit.id.desc()).all()
+    return render_template('referrals.html',page=page,requests=requests.order_by(ReferralRequest.created_at.asc()).all(),legacy_visits=legacy_visits)
+
+
+@web.post('/visits/<int:visit_id>/referral-request')
+@roles(Role.DOCTOR)
+def referral_request(visit_id):
+    v=visit_access(visit_id)
+    def create_request():
+        if not v.examination: raise ValueError('Selesaikan pemeriksaan dokter sebelum mengajukan rujukan.')
+        if v.referral or v.referral_request: raise ValueError('Kunjungan ini sudah memiliki surat atau pengajuan rujukan.')
+        db.session.add(ReferralRequest(visit=v,
+            specialist=required(request.form,'specialist',160),
+            hospital=required(request.form,'hospital',160),
+            reason=required(request.form,'reason',4000)))
+        return 'Permintaan rujukan berhasil dikirim ke admin.'
+    return mutate(create_request,url_for('web.visit',visit_id=v.id))
+
+
+@web.post('/admin/referrals/<int:request_id>/issue')
+@roles(Role.ADMIN)
+def issue_referral(request_id):
+    referral_request=db.get_or_404(ReferralRequest,request_id)
+    def issue():
+        if referral_request.status!='PENDING' or referral_request.visit.referral:
+            raise ValueError('Permintaan ini sudah diproses.')
+        specialist=required(request.form,'specialist',160)
+        hospital=required(request.form,'hospital',160)
+        notes=str(request.form.get('notes',''))[:4000]
+        v=referral_request.visit
+        db.session.add(Referral(visit=v,number=f'RJK-{date.today():%Y%m%d}-{v.id:05}',
+            specialist=specialist,hospital=hospital,reason=referral_request.reason,notes=notes))
+        referral_request.status='ISSUED'
+        referral_request.admin=current_user
+        referral_request.completed_at=datetime.now()
+        return 'Surat rujukan berhasil dibuat.'
+    return mutate(issue,url_for('web.referrals'))
+
+
+@web.post('/admin/referrals/archive')
+@roles(Role.ADMIN)
+def archive_referral():
+    def save_existing():
+        v=db.get_or_404(Visit,request.form.get('visit_id',type=int))
+        if v.referral or v.referral_request or not v.examination:
+            raise ValueError('Kunjungan ini tidak tersedia untuk pencatatan surat lama.')
+        try:
+            issued_date=date.fromisoformat(request.form.get('issued_date',''))
+        except ValueError:
+            raise ValueError('Tanggal surat tidak valid.')
+        db.session.add(Referral(visit=v,number=required(request.form,'number',40),
+            specialist=required(request.form,'specialist',160),hospital=required(request.form,'hospital',160),
+            reason=required(request.form,'reason',4000),notes=str(request.form.get('notes',''))[:4000],
+            created_at=datetime.combine(issued_date,datetime.min.time())))
+        return 'Surat rujukan lama berhasil dicatat.'
+    return mutate(save_existing,url_for('web.referrals'))
+
+
 @web.get('/patient/medical-record/<int:visit_id>')
 @roles(Role.PATIENT)
 def patient_record(visit_id):

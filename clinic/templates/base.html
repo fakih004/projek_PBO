@@ -59,7 +59,7 @@
         {% if current_user.role.value=='patient' %}
           {% set links=links+[('web.booking','fa-calendar-plus-o','Buat Janji Temu'),('web.appointments','fa-calendar-check-o','Janji Temu'),('web.records','fa-file-text-o','Rekam Medis Saya'),('web.profile','fa-user-o','Profil Saya')] %}
         {% elif current_user.role.value=='admin' %}
-          {% set links=links+[('web.patients','fa-users','Pendaftaran & Pasien'),('web.appointments','fa-calendar-check-o','Jadwal & Janji Temu'),('web.doctors','fa-user-md','Dokter & Jadwal'),('web.records','fa-stethoscope','Kunjungan & Rekam Medis'),('web.medicines','fa-medkit','Farmasi'),('web.supplier_purchases','fa-check-square-o','Persetujuan Supplier'),('web.reports','fa-line-chart','Laporan & Keuangan'),('web.users','fa-cogs','Pengguna & Akses')] %}
+          {% set links=links+[('web.patients','fa-users','Pendaftaran & Pasien'),('web.appointments','fa-calendar-check-o','Jadwal & Janji Temu'),('web.doctors','fa-user-md','Dokter & Jadwal'),('web.records','fa-stethoscope','Kunjungan & Rekam Medis'),('web.referrals','fa-file-text-o','Surat Rujukan'),('web.medicines','fa-medkit','Farmasi'),('web.supplier_purchases','fa-check-square-o','Persetujuan Supplier'),('web.reports','fa-line-chart','Laporan & Keuangan'),('web.users','fa-cogs','Pengguna & Akses')] %}
         {% elif current_user.role.value=='doctor' %}
           {% set links=links+[('web.records','fa-file-text-o','Rekam Medis')] %}
         {% elif current_user.role.value=='pharmacist' %}

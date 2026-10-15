@@ -337,3 +337,17 @@ class Referral(db.Model):
     reason=db.Column(db.Text, nullable=False)
     notes=db.Column(db.Text, default='')
     created_at=db.Column(db.DateTime, default=datetime.now)
+
+
+class ReferralRequest(db.Model):
+    id=db.Column(db.Integer, primary_key=True)
+    visit_id=db.Column(db.ForeignKey('visit.id'), unique=True, nullable=False)
+    specialist=db.Column(db.String(160), nullable=False)
+    hospital=db.Column(db.String(160), nullable=False)
+    reason=db.Column(db.Text, nullable=False)
+    status=db.Column(db.String(24), default='PENDING', nullable=False)
+    admin_id=db.Column(db.ForeignKey('user.id'))
+    created_at=db.Column(db.DateTime, default=datetime.now, nullable=False)
+    completed_at=db.Column(db.DateTime)
+    visit=db.relationship('Visit', backref=db.backref('referral_request', uselist=False))
+    admin=db.relationship('User')
