@@ -370,7 +370,11 @@ dialog::backdrop{background:rgba(31,42,47,.48)}
 .referral-clinical-summary{margin:12px 0 16px;padding-left:18px}
 .referral-clinical-summary p{margin:5px 0}
 .referral-closing{margin-top:18px!important}
-.referral-signature{width:250px;margin:32px 0 0 auto;text-align:center}
+.referral-signature-area{display:flex;justify-content:space-between;align-items:center;width:100%;margin-top:48px}
+.referral-qr-block{display:flex;flex-direction:column;align-items:center;text-align:center}
+.referral-qr-block img{display:block;width:96px;height:96px;object-fit:contain;margin-bottom:8px}
+.referral-qr-block p{margin:0;color:#6b7280;font-size:10px;font-style:italic;text-align:center}
+.referral-signature{width:250px;margin:0;text-align:center}
 .referral-signature p{margin:0}
 .referral-signature-space{height:76px}
 .referral-signature>strong{display:inline-block;min-width:190px;border-bottom:1px solid #000;padding-bottom:2px;text-decoration:underline;text-underline-offset:2px}
@@ -487,6 +491,12 @@ dialog::backdrop{background:rgba(31,42,47,.48)}
   .register-mode .form-grid{grid-template-columns:1fr}.clinic-auth .card .header{padding:21px 21px 8px}.clinic-auth .card .body{padding:13px 21px 22px}
   .table-wrap table{min-width:590px}.receipt .table-wrap table{min-width:0;font-size:9px}.receipt td,.receipt th{padding:9px 4px;font-size:8px}
   .print-sheet{padding:18px}.receipt-meta{gap:11px}.receipt-meta p{font-size:9px}
+  .referral-signature-area{margin-top:32px;gap:10px}
+  .referral-qr-block{max-width:130px}
+  .referral-qr-block img{width:64px;height:64px}
+  .referral-qr-block p{font-size:8pt}
+  .referral-signature{width:min(220px,calc(100vw - 190px))}
+  .referral-signature>strong{min-width:0;max-width:100%;overflow-wrap:anywhere}
   dl{grid-template-columns:1fr;gap:4px}dd{margin-bottom:11px}
   .toasts{right:15px;bottom:15px}.notification-panel{right:15px}.print-toolbar{justify-content:flex-start;flex-wrap:wrap}
 }
@@ -497,6 +507,8 @@ dialog::backdrop{background:rgba(31,42,47,.48)}
   .clinic-main,.public-main{margin:0!important;width:100%!important;padding:0!important;max-width:none}
   .print-sheet{border:0;box-shadow:none;margin:0;max-width:none;padding:8mm}
   .clinic-main .print-sheet.referral-letter{min-height:0;padding:3mm 5mm;background:#fff!important;color:#000!important;font:12pt/1.5 "Times New Roman",Georgia,serif}
+  .referral-signature-area{margin-top:16mm}
+  .referral-qr-block img{width:24mm;height:24mm;margin-bottom:2mm}
   .referral-letterhead{border-bottom:4px double #000!important}
   .referral-letterhead h1,.referral-letterhead p,.referral-title,.referral-patient-table,.referral-patient-table th,.referral-patient-table td{color:#000!important}
   .referral-patient-table tr,.referral-patient-table th,.referral-patient-table td{border:0!important;background:#fff!important}

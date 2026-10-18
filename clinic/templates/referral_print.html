@@ -45,10 +45,16 @@
     {% elif 'Alia' in doctor_name %}{% set doctor_sip = '445/002/DINKES-SMD/2026' %}
     {% else %}{% set doctor_sip = '445/999/DINKES-SMD/2026' %}{% endif %}
   {% endif %}
-  <div class="referral-signature">
-    <p>Hormat Kami,<br>Dokter Pemeriksa</p>
-    <div class="referral-signature-space"></div>
-    <strong>{{ doctor_name }}</strong>
-    <p class="referral-sip">SIP: {{ doctor_sip }}</p>
+  <div class="referral-signature-area">
+    <div class="referral-qr-block">
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&amp;data=Dokumen+Valid+Klinik+Medika+Husada" alt="QR Code Validasi" crossorigin="anonymous">
+      <p>Dokumen ini tervalidasi<br>secara elektronik</p>
+    </div>
+    <div class="referral-signature">
+      <p>Hormat Kami,<br>Dokter Pemeriksa</p>
+      <div class="referral-signature-space"></div>
+      <strong>{{ doctor_name }}</strong>
+      <p class="referral-sip">SIP: {{ doctor_sip }}</p>
+    </div>
   </div>
 </article>
