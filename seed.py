@@ -9,7 +9,7 @@ def seed_data(demo=True):
     accounts=[('komang','Komang',Role.ADMIN,'Admin123!'),
               ('gea','Gea',Role.NURSE,'Perawat123!'),
               ('bintang','Bintang',Role.PHARMACIST,'Apoteker123!'),
-        ('fatur','Fatur',Role.CASHIER,'Kasir123!'),
+        ('fatur','Fatur',Role.CASHIER,'Kasir123!'), #kalau masih gabisa tambah akun manual aja di admin , ,
         ('perawat','Ns. Dian Lestari',Role.NURSE,'Perawat123!'),
         ('apoteker','apt. Rahmat Hidayat',Role.PHARMACIST,'Apoteker123!'),
         ('fakih','dr. Muhammad Fakih Nabal',Role.DOCTOR,'Dokter123!'),
