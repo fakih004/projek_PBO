@@ -374,6 +374,13 @@ def receipt(visit_id):
     return render_template('receipt.html',v=v,embedded=request.args.get('embedded')=='1')
 
 
+@web.get('/admin/expense-invoices/<int:expense_id>')
+@roles(Role.ADMIN)
+def expense_receipt(expense_id):
+    expense=db.get_or_404(ExpenseInvoice,expense_id)
+    return render_template('expense_receipt.html',expense=expense)
+
+
 @web.get('/visits/<int:visit_id>/prescription')
 @roles(Role.PATIENT,Role.DOCTOR,Role.PHARMACIST)
 def prescription(visit_id):
@@ -485,16 +492,32 @@ def supplier_purchase_action(purchase_id,action):
     purchase=db.get_or_404(SupplierPurchase,purchase_id)
     def update_purchase():
         role=current_user.role
-        if action in ('approve_purchase','reject_purchase','approve_payment','reject_payment'):
+        if action in ('approve_purchase','reject_purchase'):
             if role!=Role.ADMIN: abort(403)
-        elif action in ('receive','resubmit_payment'):
-            if role!=Role.PHARMACIST or purchase.pharmacist_id!=current_user.id: abort(403)
         else:
             abort(404)
 
         if action=='approve_purchase':
             if purchase.status!=SupplierPurchaseStatus.PENDING_PURCHASE_APPROVAL: raise ValueError('Pengajuan pembelian tidak sedang menunggu keputusan.')
-            purchase.status=SupplierPurchaseStatus.PURCHASE_APPROVED
+            received_at=datetime.now()
+            if not (purchase.supplier_invoice or '').strip():
+                purchase.supplier_invoice=generate_supplier_invoice_number(received_at)
+            quantity=purchase.requested_quantity
+            amount=purchase.requested_total
+            movement_reason=f'Pembelian supplier {purchase.supplier}; pengajuan #{purchase.id}'[:200]
+            purchase.medicine.change_stock(quantity,movement_reason,current_user.id)
+            purchase.received_quantity=quantity
+            purchase.actual_unit_cost=purchase.estimated_unit_cost
+            purchase.received_at=received_at
+            purchase.status=SupplierPurchaseStatus.PURCHASE_COMPLETED
+            expense=purchase.expense_invoice
+            if expense is None:
+                expense=ExpenseInvoice(purchase=purchase,
+                    number=f'EXP-{received_at:%Y%m%d}-{purchase.id:05}',
+                    supplier=purchase.supplier,amount=amount,created_at=received_at)
+                db.session.add(expense)
+            else:
+                expense.supplier=purchase.supplier; expense.amount=amount
             purchase.purchase_decided_by=current_user.id; purchase.purchase_decided_at=datetime.now()
             purchase.purchase_decision_note=request.form.get('note','')[:400]
         elif action=='reject_purchase':
@@ -502,33 +525,6 @@ def supplier_purchase_action(purchase_id,action):
             purchase.status=SupplierPurchaseStatus.PURCHASE_REJECTED
             purchase.purchase_decided_by=current_user.id; purchase.purchase_decided_at=datetime.now()
             purchase.purchase_decision_note=required(request.form,'note',400)
-        elif action=='receive':
-            if purchase.status!=SupplierPurchaseStatus.PURCHASE_APPROVED: raise ValueError('Pembelian harus disetujui sebelum barang diterima.')
-            received_quantity=number(request.form,'received_quantity',1,1000000,True)
-            if received_quantity>purchase.requested_quantity: raise ValueError('Jumlah diterima tidak boleh melebihi jumlah yang disetujui admin.')
-            actual_unit_cost=number(request.form,'actual_unit_cost',1,100000000,True)
-            invoice=request.form.get('supplier_invoice','').strip()[:100]
-            movement_reason=f'Pembelian supplier {purchase.supplier}; faktur {invoice or "-"}; pengajuan #{purchase.id}'[:200]
-            purchase.medicine.change_stock(received_quantity,movement_reason,current_user.id)
-            purchase.received_quantity=received_quantity; purchase.actual_unit_cost=actual_unit_cost
-            purchase.supplier_invoice=invoice; purchase.received_at=datetime.now()
-            purchase.status=SupplierPurchaseStatus.PAYMENT_PENDING
-        elif action=='approve_payment':
-            if purchase.status!=SupplierPurchaseStatus.PAYMENT_PENDING: raise ValueError('Pembayaran supplier tidak sedang menunggu persetujuan.')
-            purchase.status=SupplierPurchaseStatus.PAID
-            purchase.payment_decided_by=current_user.id; purchase.payment_decided_at=datetime.now()
-            purchase.payment_decision_note=request.form.get('note','')[:400]
-        elif action=='reject_payment':
-            if purchase.status!=SupplierPurchaseStatus.PAYMENT_PENDING: raise ValueError('Pembayaran supplier tidak sedang menunggu persetujuan.')
-            purchase.status=SupplierPurchaseStatus.PAYMENT_REJECTED
-            purchase.payment_decided_by=current_user.id; purchase.payment_decided_at=datetime.now()
-            purchase.payment_decision_note=required(request.form,'note',400)
-        elif action=='resubmit_payment':
-            if purchase.status!=SupplierPurchaseStatus.PAYMENT_REJECTED: raise ValueError('Pembayaran supplier tidak ditolak.')
-            purchase.actual_unit_cost=number(request.form,'actual_unit_cost',1,100000000,True)
-            purchase.supplier_invoice=request.form.get('supplier_invoice','').strip()[:100]
-            purchase.status=SupplierPurchaseStatus.PAYMENT_PENDING
-            purchase.payment_decided_by=None; purchase.payment_decided_at=None; purchase.payment_decision_note=''
     return mutate(update_purchase,url_for('web.supplier_purchases'))
 
 
@@ -538,7 +534,12 @@ def doctors():
     if request.method=='POST':
         def save():
             did=request.form.get('id',type=int)
-            doctor=db.get_or_404(Doctor,did) if did else Doctor(user=User(role=Role.DOCTOR))
+            if did:
+                doctor=db.get_or_404(Doctor,did)
+            else:
+                sequence=User.query.filter_by(role=Role.DOCTOR).count()+1
+                doctor=Doctor(user=User(role=Role.DOCTOR,
+                    sip=f'445/{sequence:03d}/DINKES-SMD/2026'))
             doctor.user.name=required(request.form,'name',160)
             doctor.user.email=required(request.form,'email',160).lower()
             if '@' not in doctor.user.email: raise ValueError('Email tidak valid.')
@@ -606,12 +607,63 @@ def reports():
     if start>end: abort(400)
     payments=Payment.query.filter(Payment.created_at>=datetime.combine(start,datetime.min.time()),
         Payment.created_at<datetime.combine(end+timedelta(days=1),datetime.min.time())).order_by(Payment.created_at.desc()).all()
+    expenses=ExpenseInvoice.query.filter(ExpenseInvoice.created_at>=datetime.combine(start,datetime.min.time()),
+        ExpenseInvoice.created_at<datetime.combine(end+timedelta(days=1),datetime.min.time())).order_by(ExpenseInvoice.created_at.desc()).all()
     visits=Visit.query.join(Appointment).filter(Appointment.date.between(start,end)).all()
+    transactions=[dict(category='Pendapatan',invoice=p.invoice.number,date=p.created_at,party=p.invoice.visit.patient.user.name,
+        method=p.method,amount=p.amount,visit_id=p.invoice.visit_id,expense_id=None) for p in payments]
+    transactions.extend(dict(category='Pengeluaran',invoice=e.number,date=e.created_at,party=e.supplier,
+        method='Pembelian supplier',amount=e.amount,visit_id=None,expense_id=e.id) for e in expenses)
+    transactions.sort(key=lambda item:item['date'],reverse=True)
+    daily_chart=(end-start).days<=45
+    chart_buckets={}
+    cursor=start
+    while cursor<=end:
+        key=cursor.isoformat() if daily_chart else cursor.strftime('%Y-%m')
+        label=cursor.strftime('%d/%m') if daily_chart else cursor.strftime('%m/%Y')
+        chart_buckets[key]={'label':label,'income':0,'expense':0}
+        if daily_chart:
+            cursor+=timedelta(days=1)
+        else:
+            cursor=(cursor.replace(day=28)+timedelta(days=4)).replace(day=1)
+    for payment in payments:
+        key=payment.created_at.date().isoformat() if daily_chart else payment.created_at.strftime('%Y-%m')
+        if key in chart_buckets: chart_buckets[key]['income']+=payment.amount
+    for expense in expenses:
+        key=expense.created_at.date().isoformat() if daily_chart else expense.created_at.strftime('%Y-%m')
+        if key in chart_buckets: chart_buckets[key]['expense']+=expense.amount
+    chart_points=list(chart_buckets.values())
     totals={category:sum(i.quantity*i.price for p in payments for i in p.invoice.items if i.category==category) for category in ('consultation','medicine','treatment')}
     if request.args.get('export')=='csv':
         stream=io.StringIO(); writer=csv.writer(stream)
-        writer.writerow(['Invoice','Tanggal','Metode','Biaya bruto','Diskon','BPJS','Dibayar pasien'])
-        for p in payments: writer.writerow([p.invoice.number,p.created_at,p.method,p.invoice.subtotal,p.invoice.discount,p.invoice.coverage,p.amount])
+        writer.writerow(['Kategori','Invoice','Tanggal','Pihak','Metode','Jumlah','Diskon','BPJS'])
+        for p in payments: writer.writerow(['Pendapatan',p.invoice.number,p.created_at,p.invoice.visit.patient.user.name,p.method,p.amount,p.invoice.discount,p.invoice.coverage])
+        for expense in expenses: writer.writerow(['Pengeluaran',expense.number,expense.created_at,expense.supplier,'Pembelian supplier',expense.amount,0,0])
         return Response('\ufeff'+stream.getvalue(),mimetype='text/csv',headers={'Content-Disposition':'attachment; filename=laporan.csv'})
-    return render_template('reports.html',payments=payments,visits=visits,totals=totals,start=start,end=end,
-        revenue=sum(p.amount for p in payments),coverage=sum(p.invoice.coverage for p in payments))
+    return render_template('reports.html',payments=payments,transactions=transactions,chart_points=chart_points,
+        chart_interval='harian' if daily_chart else 'bulanan',visits=visits,totals=totals,start=start,end=end,
+        expenses=expenses,revenue=sum(p.amount for p in payments),coverage=sum(p.invoice.coverage for p in payments),
+        expense_total=sum(item.amount for item in expenses),
+        net_income=sum(p.amount for p in payments)-sum(item.amount for item in expenses))
+
+
+@web.get('/api/admin/finance')
+@roles(Role.ADMIN)
+def finance_api():
+    today=date.today()
+    try:
+        start=date.fromisoformat(request.args.get('start') or today.replace(day=1).isoformat())
+        end=date.fromisoformat(request.args.get('end') or today.isoformat())
+    except ValueError: abort(400)
+    if start>end: abort(400)
+    lower=datetime.combine(start,datetime.min.time()); upper=datetime.combine(end+timedelta(days=1),datetime.min.time())
+    payments=Payment.query.filter(Payment.created_at>=lower,Payment.created_at<upper).all()
+    expenses=ExpenseInvoice.query.filter(ExpenseInvoice.created_at>=lower,ExpenseInvoice.created_at<upper).all()
+    transactions=[dict(category='Pendapatan',invoice=p.invoice.number,date=p.created_at.isoformat(),
+        party=p.invoice.visit.patient.user.name,amount=p.amount,method=p.method) for p in payments]
+    transactions.extend(dict(category='Pengeluaran',invoice=e.number,date=e.created_at.isoformat(),
+        party=e.supplier,amount=e.amount,method='Pembelian supplier') for e in expenses)
+    transactions.sort(key=lambda item:item['date'],reverse=True)
+    revenue=sum(p.amount for p in payments); expense_total=sum(e.amount for e in expenses)
+    return jsonify(transactions=transactions,revenue=revenue,
+        expenses=expense_total,net_income=revenue-expense_total)

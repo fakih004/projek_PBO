@@ -7,7 +7,7 @@ from flask import Flask, render_template
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
-from sqlalchemy import event
+from sqlalchemy import Index, event, inspect, text
 from sqlalchemy.engine import Engine
 import sqlite3
 
@@ -44,7 +44,7 @@ def create_app(config=None):
     login.init_app(app)
     csrf.init_app(app)
     login.login_view = 'web.login_page'
-    from .models import User
+    from .models import SupplierPurchase, User
     @login.user_loader
     def load_user(user_id):
         user = db.session.get(User, int(user_id))
@@ -69,4 +69,13 @@ def create_app(config=None):
         return response
     with app.app_context():
         db.create_all()
+        if 'sip' not in {column['name'] for column in inspect(db.engine).get_columns('user')}:
+            with db.engine.begin() as connection:
+                connection.execute(text('ALTER TABLE "user" ADD COLUMN sip VARCHAR(50)'))
+        Index('uq_user_sip', User.sip, unique=True).create(bind=db.engine, checkfirst=True)
+        from .services import generate_supplier_invoice_number
+        for purchase in SupplierPurchase.query.filter(SupplierPurchase.received_at.isnot(None)).all():
+            if not (purchase.supplier_invoice or '').strip():
+                purchase.supplier_invoice=generate_supplier_invoice_number(purchase.received_at)
+        db.session.commit()
     return app

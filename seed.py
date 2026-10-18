@@ -2,7 +2,7 @@
 from datetime import date, timedelta
 from clinic import create_app, db
 from clinic.models import *
-from clinic.services import AppointmentService, NotificationService
+from clinic.services import AppointmentService, NotificationService, generate_supplier_invoice_number
 
 
 def seed_data(demo=True):
@@ -18,10 +18,14 @@ def seed_data(demo=True):
         ('ratna','Ratna Permata',Role.PATIENT,'Pasien123!'),
         ('siti','Siti Aminah',Role.PATIENT,'Pasien123!')]
     new_database=not User.query.first()
+    seeded_sip={'fakih':'445/001/DINKES-SMD/2026','alia':'445/002/DINKES-SMD/2026'}
     for index,(email,name,role,password) in enumerate(accounts):
         user=User.query.filter_by(email=email+'@medikahusada.local').first()
-        if user: continue
-        user=User(email=email+'@medikahusada.local',name=name,role=role,phone='081234567890')
+        if user:
+            if email in seeded_sip and not user.sip: user.sip=seeded_sip[email]
+            continue
+        user=User(email=email+'@medikahusada.local',name=name,role=role,phone='081234567890',
+            sip=seeded_sip.get(email))
         user.set_password(password); db.session.add(user); db.session.flush()
         if role==Role.DOCTOR:
             doctor=Doctor(user=user,specialty='Dokter Umum' if email=='fakih' else 'Obstetri dan Ginekologi',fee=75000 if email=='fakih' else 150000)
@@ -32,6 +36,9 @@ def seed_data(demo=True):
             patient=Patient(user=user,nik=f'327320199000{index:04}',birth_date=date(1990,5,12),gender='Laki-laki' if email=='pasien' else 'Perempuan',
                 address='Jl. Melati No. 12',bpjs='0001234567890' if email=='ratna' else '',bpjs_active=email=='ratna',allergies='Tidak diketahui',history='Tidak tercatat')
             db.session.add(patient); db.session.flush(); patient.mr=f'KMH-{date.today().year}-{patient.id:05}'
+    for purchase in SupplierPurchase.query.filter(SupplierPurchase.received_at.isnot(None)).all():
+        if not (purchase.supplier_invoice or '').strip():
+            purchase.supplier_invoice=generate_supplier_invoice_number(purchase.received_at)
     names=['Paracetamol 500 mg','Amoxicillin 500 mg','Omeprazole 20 mg','Cetirizine 10 mg','Vitamin B Complex','Asam Folat','Ferrous Sulfate','Antacid','Ibuprofen 400 mg','ORS']
     for i,name in enumerate(names):
         if not Medicine.query.filter_by(name=name).first():

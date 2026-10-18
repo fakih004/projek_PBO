@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="print-toolbar">
+  <button class="button" data-print><i class="fa fa-print" aria-hidden="true"></i> Cetak / Simpan PDF</button>
+  <a class="button secondary" href="{{ url_for('web.reports') }}">Kembali ke laporan</a>
+</div>
+<article class="card print-sheet receipt">
+  <header class="document-header">
+    <span class="brand-icon">✚</span>
+    <h1>MEDIKA HUSADA</h1>
+    <p>Klinik Pratama · Bukti Pengeluaran Supplier</p>
+    <strong>{{ expense.number }}</strong>
+  </header>
+  <div class="receipt-meta">
+    <div><small>SUPPLIER</small><p>{{ expense.supplier }}</p></div>
+    <div><small>TANGGAL TRANSAKSI</small><p>{{ expense.created_at.strftime('%d/%m/%Y %H:%M') }}</p></div>
+    <div><small>OBAT</small><p>{{ expense.purchase.medicine.name }}</p></div>
+    <div><small>FAKTUR SUPPLIER</small><p>{{ expense.purchase.supplier_invoice or 'Tidak dicantumkan' }}</p></div>
+  </div>
+  <div class="table-wrap">
+    <table><thead><tr><th>Rincian pembelian</th><th>Jumlah</th><th>Harga satuan</th><th>Subtotal</th></tr></thead>
+      <tbody><tr><td>{{ expense.purchase.reason }}</td><td>{{ expense.purchase.received_quantity }} {{ expense.purchase.medicine.unit }}</td><td>{{ expense.purchase.actual_unit_cost|rupiah }}</td><td>{{ expense.amount|rupiah }}</td></tr></tbody>
+    </table>
+  </div>
+  <div class="totals"><p class="grand-total"><span>Total pengeluaran</span><strong>{{ expense.amount|rupiah }}</strong></p></div>
+  <div class="document-footer">Invoice pengeluaran pembelian obat supplier.</div>
+</article>
+{% endblock %}

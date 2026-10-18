@@ -46,6 +46,7 @@ class PaymentStatus(str, Enum):
 class SupplierPurchaseStatus(str, Enum):
     PENDING_PURCHASE_APPROVAL='PENDING_PURCHASE_APPROVAL'
     PURCHASE_APPROVED='PURCHASE_APPROVED'
+    PURCHASE_COMPLETED='PURCHASE_COMPLETED'
     PURCHASE_REJECTED='PURCHASE_REJECTED'
     PAYMENT_PENDING='PAYMENT_PENDING'
     PAYMENT_REJECTED='PAYMENT_REJECTED'
@@ -66,6 +67,7 @@ class User(UserMixin, db.Model):
     name=db.Column(db.String(160), nullable=False)
     _password_hash=db.Column('password_hash', db.String(256), nullable=False)
     role=db.Column(db.Enum(Role), nullable=False)
+    sip=db.Column(db.String(50), unique=True)
     active=db.Column(db.Boolean, default=True, nullable=False)
     phone=db.Column(db.String(24), default='')
     created_at=db.Column(db.DateTime, default=datetime.now)
@@ -256,6 +258,7 @@ class SupplierPurchase(db.Model):
     pharmacist=db.relationship('User', foreign_keys=[pharmacist_id])
     purchase_approver=db.relationship('User', foreign_keys=[purchase_decided_by])
     payment_approver=db.relationship('User', foreign_keys=[payment_decided_by])
+    expense_invoice=db.relationship('ExpenseInvoice', backref='purchase', uselist=False, cascade='all, delete-orphan')
 
     @property
     def requested_total(self): return self.requested_quantity*self.estimated_unit_cost
@@ -317,6 +320,17 @@ class Payment(db.Model):
     method=db.Column(db.String(24), nullable=False)
     status=db.Column(db.Enum(PaymentStatus), nullable=False)
     created_at=db.Column(db.DateTime, default=datetime.now)
+
+
+class ExpenseInvoice(db.Model):
+    """Supplier expense recorded when purchased stock is received."""
+    id=db.Column(db.Integer, primary_key=True)
+    purchase_id=db.Column(db.ForeignKey('supplier_purchase.id'), unique=True, nullable=False)
+    number=db.Column(db.String(40), unique=True, nullable=False)
+    supplier=db.Column(db.String(160), nullable=False)
+    amount=db.Column(db.Integer, nullable=False)
+    created_at=db.Column(db.DateTime, default=datetime.now, nullable=False)
+    __table_args__=(db.CheckConstraint('amount >= 0'),)
 
 
 class Notification(db.Model):

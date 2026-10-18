@@ -2,6 +2,7 @@
 from abc import ABC, abstractmethod
 from datetime import date, datetime, timedelta
 import math
+import secrets
 from sqlalchemy import select, update
 from sqlalchemy.dialects.sqlite import insert
 from . import db
@@ -17,10 +18,21 @@ LABELS={
     'WAITING_PAYMENT':'Silakan menuju kasir', 'COMPLETED':'Pelayanan selesai. Semoga lekas sembuh.',
     'UNPAID':'Belum dibayar', 'PAID':'Lunas', 'BPJS_COVERED':'Ditanggung BPJS',
     'PENDING_PURCHASE_APPROVAL':'Menunggu persetujuan pembelian', 'PURCHASE_APPROVED':'Disetujui · menunggu barang',
+    'PURCHASE_COMPLETED':'Selesai · stok masuk',
     'PURCHASE_REJECTED':'Pembelian ditolak', 'PAYMENT_PENDING':'Menunggu persetujuan pembayaran',
     'PAYMENT_REJECTED':'Pembayaran ditolak',
     'patient':'Pasien', 'admin':'Admin', 'nurse':'Perawat', 'doctor':'Dokter', 'pharmacist':'Apoteker', 'cashier':'Kasir',
 }
+
+
+def generate_supplier_invoice_number(created_at=None):
+    """Return a collision-checked supplier invoice number for the given date."""
+    issued_at=created_at or datetime.now()
+    for _ in range(1000):
+        number=f'INV-SUP-{issued_at:%Y%m%d}-{secrets.randbelow(1000):03d}'
+        if not SupplierPurchase.query.filter_by(supplier_invoice=number).first():
+            return number
+    raise ValueError('Nomor faktur supplier otomatis tidak tersedia untuk tanggal ini.')
 
 
 def required(data, key, limit=4000):

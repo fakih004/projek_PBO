@@ -1,0 +1,54 @@
+<div class="print-toolbar print-hidden">
+  <button class="button" data-print><i class="fa fa-print" aria-hidden="true"></i> Cetak / Simpan PDF</button>
+  <a class="button secondary" href="{{ url_for('web.referrals') }}">Kembali ke surat rujukan</a>
+</div>
+<article class="print-sheet referral-letter">
+  <header class="referral-letterhead">
+    <h1>KLINIK PRATAMA MEDIKA HUSADA</h1>
+    <p>Jl. Pahlawan No. 99, Samarinda, Kalimantan Timur 75123</p>
+    <p>Telp: +62 812-3456-7890 <span aria-hidden="true">|</span> Email: info@medikahusada.com</p>
+  </header>
+
+  <p class="referral-date">Samarinda, {{ v.referral.created_at.strftime('%d') }} {{ ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][v.referral.created_at.month-1] }} {{ v.referral.created_at.strftime('%Y') }}</p>
+
+  <section class="referral-recipient">
+    <p>Kepada Yth,</p>
+    <p><strong>Teman Sejawat Dokter Spesialis {{ v.referral.specialist }}</strong></p>
+    <p>di {{ v.referral.hospital }}</p>
+  </section>
+
+  <h2 class="referral-title">SURAT RUJUKAN</h2>
+  <p class="referral-number">Nomor: {{ v.referral.number }}</p>
+
+  <p>Dengan hormat, bersama surat ini kami merujuk pasien tersebut di atas dengan temuan klinis sebagai berikut:</p>
+
+  <table class="referral-patient-table" aria-label="Identitas pasien">
+    <tbody>
+      <tr><th>Nama Pasien</th><td>:</td><td>{{ v.patient.user.name }}</td></tr>
+      <tr><th>Tanggal Lahir</th><td>:</td><td>{{ v.patient.birth_date.strftime('%d/%m/%Y') }}</td></tr>
+      <tr><th>Jenis Kelamin</th><td>:</td><td>{{ v.patient.gender }}</td></tr>
+      <tr><th>Alamat</th><td>:</td><td>{{ v.patient.address }}</td></tr>
+    </tbody>
+  </table>
+
+  <div class="referral-clinical-summary">
+    <p><strong>Diagnosa Awal:</strong> {{ v.examination.diagnosis if v.examination else 'Belum tercatat' }}</p>
+    <p><strong>Alasan Dirujuk:</strong> {{ v.referral.reason }}</p>
+  </div>
+
+  <p class="referral-closing">Mohon pemeriksaan dan penanganan lebih lanjut. Atas perhatian sejawat, kami ucapkan terima kasih.</p>
+
+  {% set doctor_name = v.doctor.user.name %}
+  {% set doctor_sip = v.doctor.user.sip %}
+  {% if not doctor_sip %}
+    {% if 'Fakih' in doctor_name %}{% set doctor_sip = '445/001/DINKES-SMD/2026' %}
+    {% elif 'Alia' in doctor_name %}{% set doctor_sip = '445/002/DINKES-SMD/2026' %}
+    {% else %}{% set doctor_sip = '445/999/DINKES-SMD/2026' %}{% endif %}
+  {% endif %}
+  <div class="referral-signature">
+    <p>Hormat Kami,<br>Dokter Pemeriksa</p>
+    <div class="referral-signature-space"></div>
+    <strong>{{ doctor_name }}</strong>
+    <p class="referral-sip">SIP: {{ doctor_sip }}</p>
+  </div>
+</article>

@@ -116,6 +116,35 @@ hr{border:0;border-top:1px solid var(--border);margin:24px 0}
 
 /* Dashboard components inspired by the Hospital analytics cards */
 .stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.stats.finance-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:0 0 12px}
+.finance-overview{display:grid;grid-template-columns:minmax(0,7fr) minmax(240px,3fr);gap:16px;align-items:stretch;margin:0 0 12px}
+.finance-overview>.card{margin-bottom:0}
+.finance-chart-card{min-width:0;padding:20px 22px}
+.finance-chart-card .section-head{margin-bottom:10px}
+.finance-chart-card .section-head h2{margin-bottom:4px}
+.finance-chart-card .section-head p{margin:0;font-size:11px}
+.chart-legend{display:flex;gap:14px;align-items:center;color:#6f7d84;font-size:10px;white-space:nowrap}
+.chart-legend span{display:inline-flex;align-items:center;gap:6px}
+.chart-legend i{display:inline-block;width:9px;height:9px;border-radius:3px}
+.legend-income{background:#22af46}.legend-expense{background:#de4848}
+.finance-chart-wrap{position:relative;height:220px;min-width:0}
+.finance-chart-wrap canvas{display:block;width:100%;height:100%}
+.finance-chart-wrap canvas[hidden]{display:none}
+.chart-empty{position:absolute;inset:40% 0 auto;text-align:center;color:#87939a;font-size:12px}
+.finance-filter{display:flex;flex-direction:column;justify-content:center;gap:0;padding:22px}
+.finance-filter label{width:100%;min-width:0;margin:0 0 14px}
+.finance-filter .button{width:100%;margin-top:2px}
+.service-cost-section>h2{margin:0 0 4px;font-size:18px;color:#334155}
+.service-cost-section>.muted{margin:0 0 15px;font-size:11px}
+.service-cost-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.service-cost-card{display:flex;align-items:center;gap:14px;min-width:0;min-height:100px;padding:17px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 2px 5px rgba(15,23,42,.04)}
+.service-cost-icon{width:44px;height:44px;flex:0 0 44px;display:grid;place-items:center;border-radius:12px;font-size:17px}
+.service-cost-card>div{min-width:0}
+.service-cost-label{margin:0 0 4px;color:#64748b;font-size:10px;font-weight:700;letter-spacing:.45px;text-transform:uppercase}
+.service-cost-card strong{display:block;overflow-wrap:anywhere;color:#1e293b;font-size:clamp(17px,1.5vw,22px);font-weight:700;line-height:1.25}
+.cost-consultation .service-cost-icon{background:#eff6ff;color:#2563eb}
+.cost-treatment .service-cost-icon{background:#fff7ed;color:#d97706}
+.cost-medicine .service-cost-icon{background:#f5f3ff;color:#7c3aed}
 .stat{position:relative;overflow:hidden;padding:21px 22px;border-left:3px solid var(--primary)}
 .stat:nth-child(2){border-left-color:var(--purple)}
 .stat:nth-child(3){border-left-color:var(--warning)}
@@ -125,6 +154,22 @@ hr{border:0;border-top:1px solid var(--border);margin:24px 0}
 .stat>strong{display:block;font-size:30px;font-weight:400;letter-spacing:-.6px;margin:11px 0 4px;line-height:1.25;color:#383e42}
 .stat>strong.smaller{font-size:20px;overflow-wrap:anywhere}
 .stat small{font-size:9px}
+.stat.finance-stat{min-height:128px;padding:16px 18px;border:1px solid var(--border);border-left:4px solid var(--primary);border-radius:11px;box-shadow:0 4px 14px rgba(35,55,70,.05);display:flex;flex-direction:column;justify-content:flex-start}
+.finance-stat-top{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:32px}
+.finance-stat-top>span{display:block;color:#718087;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.45px}
+.finance-icon{width:32px;height:32px;flex:0 0 32px;display:grid;place-items:center;border-radius:50%;font-size:14px}
+.icon-income{background:#e6f7eb;color:#198b38}.icon-expense{background:#fdeaea;color:#c43d3d}
+.icon-net{background:#e4f5f1;color:#16745f}.icon-coverage{background:#e7f2ff;color:#2871b8}
+.icon-visits{background:#f0eafa;color:#755099}.icon-count{background:#e9eff3;color:#536c7a}
+.stat.finance-stat>strong{margin:8px 0 4px;font-size:clamp(19px,1.65vw,25px);font-weight:650;letter-spacing:-.45px;line-height:1.2}
+.stat.finance-stat>strong.smaller{font-size:clamp(17px,1.5vw,22px)}
+.stat.finance-stat>small{display:block;margin-top:2px;color:#849097;font-size:10px;line-height:1.35}
+.stat.finance-income{border-left-color:#22af46}.stat.finance-income>strong{color:#198b38}
+.stat.finance-expense{border-left-color:#de4848}.stat.finance-expense>strong{color:#c43d3d}
+.stat.finance-net{border-left-color:#238b78}.stat.finance-net>strong{color:#16745f}
+.stat.finance-coverage{border-left-color:#4e91ce}.stat.finance-coverage>strong{color:#2871b8}
+.stat.finance-visits{border-left-color:#9772bd}.stat.finance-visits>strong{color:#755099}
+.stat.finance-count{border-left-color:#718a98}.stat.finance-count>strong{color:#536c7a}
 .compact .stat{padding:17px 19px}
 .compact .stat>strong{font-size:22px}
 .appointment-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
@@ -163,6 +208,8 @@ textarea{resize:vertical}
 .filter-bar label{margin:0;flex:1;min-width:160px}
 .filter-bar .button{flex-shrink:0}
 .table-wrap{width:100%;overflow:auto}
+.transaction-receipt-link{white-space:nowrap;color:#167f82;border-color:#cce8e8}
+.transaction-receipt-link:hover,.transaction-receipt-link:focus{color:#0c6265;border-color:#8ed0d1;background:#edfafa}
 table{width:100%;border-collapse:collapse;text-align:left;font-size:11px;color:#5b666d}
 th{font-size:9px;text-transform:uppercase;letter-spacing:.55px;font-weight:700;color:#7f8b92;background:#f7f9fa;white-space:nowrap}
 td,th{padding:13px 12px;border-bottom:1px solid #edf0f2}
@@ -305,6 +352,29 @@ dialog::backdrop{background:rgba(31,42,47,.48)}
 .receipt-dialog .section-head{margin-bottom:7px}
 .print-toolbar{display:flex;gap:10px;justify-content:flex-end;margin-bottom:18px}
 .print-sheet{max-width:850px;margin:auto;padding:38px}
+.referral-letter{box-sizing:border-box;background:#fff;color:#000;font:12pt/1.55 "Times New Roman",Georgia,serif;padding:16mm 18mm;min-height:260mm}
+.referral-letter p{margin:0 0 10px}
+.referral-letterhead{text-align:center;padding:0 0 12px;margin-bottom:18px;border-bottom:4px double #000}
+.referral-letterhead h1{font:700 16pt/1.25 "Times New Roman",Georgia,serif;letter-spacing:.3px;margin:0 0 5px;color:#000}
+.referral-letterhead p{font-size:10pt;margin:2px 0}
+.referral-date{text-align:right;margin:0 0 24px!important}
+.referral-recipient{margin:0 0 24px}
+.referral-recipient p{margin:0 0 2px}
+.referral-title{text-align:center;text-decoration:underline;font:bold 14pt/1.4 "Times New Roman",Georgia,serif;color:#000;margin:0 0 2px}
+.referral-number{text-align:center;font-size:10pt;margin-bottom:22px!important}
+.referral-patient-table{width:100%;min-width:0!important;margin:12px 0 14px;border-collapse:collapse;color:#000;font:12pt/1.45 "Times New Roman",Georgia,serif}
+.referral-patient-table tr,.referral-patient-table th,.referral-patient-table td{border:0;background:transparent;padding:3px 5px;vertical-align:top}
+.referral-patient-table th{width:145px;text-align:left;text-transform:none;letter-spacing:0;color:#000;font:400 12pt/1.45 "Times New Roman",Georgia,serif;white-space:nowrap}
+.referral-patient-table td:nth-child(2){width:14px;padding-left:0;padding-right:0}
+.referral-patient-table td:last-child{overflow-wrap:anywhere}
+.referral-clinical-summary{margin:12px 0 16px;padding-left:18px}
+.referral-clinical-summary p{margin:5px 0}
+.referral-closing{margin-top:18px!important}
+.referral-signature{width:250px;margin:32px 0 0 auto;text-align:center}
+.referral-signature p{margin:0}
+.referral-signature-space{height:76px}
+.referral-signature>strong{display:inline-block;min-width:190px;border-bottom:1px solid #000;padding-bottom:2px;text-decoration:underline;text-underline-offset:2px}
+.referral-signature .referral-sip{margin-top:5px;font-size:10pt}
 .referral-body{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;min-height:310px}
 .referral-copy{flex:1;min-width:0}
 .qris-display{position:relative;flex:0 0 150px;width:150px;height:150px;margin:78px 8px 0 0;border:7px solid #fff;outline:1px solid #dfe5e8;background-color:#fff;background-image:repeating-conic-gradient(#172a43 0% 25%,#fff 0% 50%);background-size:12px 12px;image-rendering:pixelated}
@@ -354,6 +424,11 @@ dialog::backdrop{background:rgba(31,42,47,.48)}
   .public-nav nav{gap:16px}.doctor-card{gap:14px}.doctor-avatar{width:52px;height:62px;font-size:17px}
   .clinic-navbar .navbar-form{display:none}
 }
+@media(max-width:850px){
+  .finance-overview{grid-template-columns:1fr}
+  .finance-filter{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px;align-items:end}
+  .finance-filter .button{grid-column:1/-1}
+}
 @media(max-width:768px){
   .supplier-purchase-facts{grid-template-columns:repeat(2,minmax(0,1fr))}
   .doctor-schedule-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
@@ -377,6 +452,14 @@ dialog::backdrop{background:rgba(31,42,47,.48)}
   .register-mode .auth-box{margin:auto;width:min(690px,100%);padding:25px}
 }
 @media(max-width:540px){
+  .stats.finance-stats{grid-template-columns:1fr}
+  .service-cost-grid{grid-template-columns:1fr;gap:10px}
+  .service-cost-card{min-height:84px;padding:14px}
+  .finance-stats,.supporting-stats{grid-template-columns:1fr}
+  .finance-chart-card{padding:16px}
+  .finance-chart-card .section-head{align-items:flex-start;gap:8px;flex-direction:column}
+  .finance-chart-wrap{height:205px}
+  .finance-filter{grid-template-columns:1fr}
   .supplier-purchase-facts,.supplier-purchase-actions{grid-template-columns:1fr}.form-span-two{grid-column:auto}
   .examination-summary-layout{grid-template-columns:1fr}.payment-qr-code{justify-self:center;margin:12px 0 16px}
   .doctor-schedule-grid{grid-template-columns:1fr;gap:9px}.doctor-schedule-card{min-height:112px;padding:13px}
@@ -413,6 +496,11 @@ dialog::backdrop{background:rgba(31,42,47,.48)}
   .clinic-main .container-fluid>:not(.print-sheet){display:none!important}
   .clinic-main,.public-main{margin:0!important;width:100%!important;padding:0!important;max-width:none}
   .print-sheet{border:0;box-shadow:none;margin:0;max-width:none;padding:8mm}
+  .clinic-main .print-sheet.referral-letter{min-height:0;padding:3mm 5mm;background:#fff!important;color:#000!important;font:12pt/1.5 "Times New Roman",Georgia,serif}
+  .referral-letterhead{border-bottom:4px double #000!important}
+  .referral-letterhead h1,.referral-letterhead p,.referral-title,.referral-patient-table,.referral-patient-table th,.referral-patient-table td{color:#000!important}
+  .referral-patient-table tr,.referral-patient-table th,.referral-patient-table td{border:0!important;background:#fff!important}
+  .print-hidden{display:none!important}
   .table-wrap{overflow:visible}.print-sheet table{min-width:0!important}.document-header{break-after:avoid}
   tr,.prescription-list article{break-inside:avoid}a{color:inherit}.receipt-meta{grid-template-columns:1fr 1fr}.badge{print-color-adjust:exact}
   @page{size:A4;margin:12mm}
