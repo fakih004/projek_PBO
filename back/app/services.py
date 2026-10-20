@@ -1,4 +1,4 @@
-"""Transactional business rules shared by the FastAPI routes."""
+"""Aturan bisnis transaksional yang digunakan bersama oleh route FastAPI."""
 from datetime import date, datetime, timedelta
 
 from sqlalchemy import select, update
@@ -194,7 +194,7 @@ def verify_appointment(db: Session, appointment: Appointment) -> Visit:
     notify(
         db,
         appointment.patient.user_id,
-        f"Appointment terverifikasi. Antrean {visit.queue}. Menunggu pemeriksaan perawat.",
+        f"Janji temu terverifikasi. Antrean {visit.queue}. Menunggu pemeriksaan perawat.",
     )
     return visit
 
@@ -384,7 +384,7 @@ def process_pharmacy(db: Session, visit: Visit, action: str, actor: User) -> Non
 def pay_invoice(db: Session, visit: Visit, admin: User, data) -> Payment:
     invoice = visit.invoice
     if not invoice:
-        raise DomainError("Invoice belum tersedia.")
+        raise DomainError("Tagihan belum tersedia.")
     if data.discount > invoice.subtotal:
         raise DomainError("Diskon tidak boleh melebihi subtotal.")
     method = "BPJS" if visit.appointment.insurance else data.method
@@ -423,6 +423,8 @@ def pay_invoice(db: Session, visit: Visit, admin: User, data) -> Payment:
     return payment
 
 
+# PBO - Enkapsulasi:
+# Layanan membungkus validasi dan mutasi stok; atribut model tetap dapat diakses langsung.
 def adjust_stock(db: Session, medicine: Medicine, delta: int, reason: str, actor: User) -> None:
     locked = db.scalar(select(Medicine).where(Medicine.id == medicine.id).with_for_update())
     if not locked or delta == 0:

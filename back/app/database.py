@@ -7,6 +7,8 @@ from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 from .config import get_settings
 
 
+# PBO - Pewarisan:
+# Base mewarisi pemetaan ORM dari DeclarativeBase untuk dipakai seluruh model.
 class Base(DeclarativeBase):
     pass
 

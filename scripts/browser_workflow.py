@@ -1,4 +1,4 @@
-"""Isolated real-browser workflow; does not modify the localhost demo database."""
+"""Pengujian alur melalui browser secara terisolasi; tidak mengubah database demo localhost."""
 import sys
 import tempfile
 import threading
@@ -29,10 +29,10 @@ def main():
         app=create_app({'TESTING':True,'SQLALCHEMY_DATABASE_URI':'sqlite:///'+str(Path(folder)/'browser.db')})
         with app.app_context():
             seed_data(demo=False)
-            # Broad fixture schedule makes the test independent of ordinary practice hours.
+            # Jadwal fixture yang luas membuat pengujian tidak bergantung pada jam praktik biasa.
             for schedule in DoctorSchedule.query.all():
                 schedule.start='00:00'; schedule.end='23:59'; schedule.interval=1; schedule.quota=1440
-            # Sunday also needs a schedule for tests run that day.
+            # Hari Minggu juga memerlukan jadwal jika pengujian dijalankan pada hari tersebut.
             if not DoctorSchedule.query.filter_by(doctor_id=1,weekday=date.today().weekday()).first():
                 db.session.add(DoctorSchedule(doctor_id=1,weekday=date.today().weekday(),start='00:00',end='23:59',interval=1,quota=1440))
             db.session.commit()
@@ -56,13 +56,13 @@ def main():
                 doctor=account('fakih','Dokter123!')
                 pharmacist=account('apoteker','Apoteker123!')
                 patient.goto('http://127.0.0.1:5001/appointments/new')
-                # Avoid selecting the next minute, which can expire while filling the form.
+                # Hindari memilih menit berikutnya karena waktunya dapat lewat saat formulir diisi.
                 patient.locator('.slot:not([disabled])').last.click()
                 patient.locator('[name=complaint]').fill('Keluhan untuk pengujian alur browser')
                 patient.locator('#booking-submit').click(); patient.wait_for_url('**/appointments')
                 expect(patient.locator('tbody tr')).to_contain_text('Menunggu verifikasi')
                 patient.goto('http://127.0.0.1:5001/patient/dashboard')
-                # Admin sees the new appointment through polling, without navigating or refreshing.
+                # Admin melihat janji baru melalui polling tanpa berpindah atau memuat ulang halaman.
                 admin.get_by_role('button',name='Verifikasi',exact=True).first.click(timeout=15000)
                 admin.locator('#confirm-yes').click()
                 expect(admin.locator('.toast').last).to_contain_text('berhasil')
@@ -103,7 +103,7 @@ def main():
                 expect(patient.locator('.progress-card')).to_contain_text('Pelayanan Anda telah selesai.',timeout=15000)
                 for width in [375,768,1366,1920]:
                     doctor.set_viewport_size({'width':width,'height':900})
-                    assert doctor.evaluate('document.documentElement.scrollWidth <= innerWidth'),f'Clinical overflow {width}'
+                    assert doctor.evaluate('document.documentElement.scrollWidth <= innerWidth'),f'Halaman pemeriksaan melebar melebihi layar: {width}'
                 with app.app_context():
                     assert Payment.query.one().amount==95000
                     assert db.session.get(Medicine,1).stock==198
@@ -111,7 +111,7 @@ def main():
                     assert Visit.query.one().prescription.items.__len__()==2
                 assert not errors,errors
                 browser.close()
-                print('Browser workflow passed: booking > admin verification > nurse > doctor (2 medicines) > pharmacy > payment; cross-session polling and database persistence verified.')
+                print('Pengujian alur browser lulus: pemesanan > verifikasi admin > perawat > dokter (2 obat) > farmasi > pembayaran; polling lintas session dan penyimpanan database terverifikasi.')
         finally:
             server.shutdown(); thread.join()
             with app.app_context(): db.session.remove(); db.engine.dispose()

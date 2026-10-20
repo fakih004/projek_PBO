@@ -75,7 +75,7 @@ def test_full_cross_role_workflow(client, auth):
         if item["appointmentId"] == appointment_id
     )
 
-    # Clinical workflow is only allowed on or after the visit date.
+    # Alur pemeriksaan hanya diizinkan pada tanggal kunjungan atau sesudahnya.
     with SessionLocal() as db:
         appointment = db.get(Appointment, appointment_id)
         appointment.date = date.today()

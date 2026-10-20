@@ -74,6 +74,8 @@ class User(UserMixin, db.Model):
     patient=db.relationship('Patient', backref='user', uselist=False)
     doctor=db.relationship('Doctor', backref='user', uselist=False)
 
+    # PBO - Enkapsulasi:
+    # Validasi dan hashing dipusatkan di method; _password_hash bersifat internal secara konvensi.
     def set_password(self, password):
         if len(password) < 8:
             raise ValueError('Password minimal 8 karakter.')
@@ -129,7 +131,7 @@ class Appointment(db.Model):
     notes=db.Column(db.Text, default='')
     insurance=db.Column(db.Boolean, default=False)
     status=db.Column(db.Enum(AppointmentStatus), default=AppointmentStatus.PENDING, nullable=False)
-    # Released on cancellation; NULL permits multiple historical bookings of a slot.
+    # Dilepas saat pembatalan; NULL memungkinkan beberapa riwayat pemesanan pada slot yang sama.
     slot_key=db.Column(db.String(80), unique=True)
     created_at=db.Column(db.DateTime, default=datetime.now)
     patient=db.relationship(Patient, backref='appointments')
@@ -211,6 +213,8 @@ class Medicine(db.Model):
     __table_args__=(db.CheckConstraint('stock >= 0'),db.CheckConstraint('price >= 0'))
     @property
     def stock(self): return self._stock
+    # PBO - Enkapsulasi:
+    # Method mengontrol perubahan stok dengan validasi dan pencatatan mutasi.
     def change_stock(self, delta, reason, actor_id, visit_id=None):
         from sqlalchemy import update
         if not delta or not reason.strip():
@@ -323,7 +327,7 @@ class Payment(db.Model):
 
 
 class ExpenseInvoice(db.Model):
-    """Supplier expense recorded when purchased stock is received."""
+    """Pengeluaran untuk pemasok dicatat saat stok yang dibeli diterima."""
     id=db.Column(db.Integer, primary_key=True)
     purchase_id=db.Column(db.ForeignKey('supplier_purchase.id'), unique=True, nullable=False)
     number=db.Column(db.String(40), unique=True, nullable=False)

@@ -1,4 +1,4 @@
-"""Transactional domain services. Routes commit once; any failure rolls everything back."""
+"""Layanan domain transaksional. Route melakukan commit sekali; kegagalan membatalkan seluruh perubahan transaksi."""
 from abc import ABC, abstractmethod
 from datetime import date, datetime, timedelta
 import math
@@ -26,13 +26,13 @@ LABELS={
 
 
 def generate_supplier_invoice_number(created_at=None):
-    """Return a collision-checked supplier invoice number for the given date."""
+    """Menghasilkan nomor faktur pemasok untuk tanggal tertentu setelah memeriksa duplikasi."""
     issued_at=created_at or datetime.now()
     for _ in range(1000):
         number=f'INV-SUP-{issued_at:%Y%m%d}-{secrets.randbelow(1000):03d}'
         if not SupplierPurchase.query.filter_by(supplier_invoice=number).first():
             return number
-    raise ValueError('Nomor faktur supplier otomatis tidak tersedia untuk tanggal ini.')
+    raise ValueError('Nomor faktur pemasok otomatis tidak tersedia untuk tanggal ini.')
 
 
 def required(data, key, limit=4000):
@@ -75,7 +75,7 @@ class NotificationService:
 class AppointmentService:
     @staticmethod
     def claim_edit(a, target):
-        """Conditional writes serialize edits with verification and the first assessment."""
+        """Pembaruan bersyarat mengatur perubahan agar tidak bertabrakan dengan verifikasi dan pemeriksaan awal."""
         result=db.session.execute(update(Appointment).where(Appointment.id==a.id,
             Appointment.status.in_([AppointmentStatus.PENDING,AppointmentStatus.RESCHEDULED,AppointmentStatus.VERIFIED])).values(status=target))
         if result.rowcount!=1:
@@ -148,7 +148,7 @@ class AppointmentService:
         visit.queue=f'D{a.doctor_id}-{seq:03}'
         visit.status=VisitStatus.WAITING_NURSE
         db.session.add(visit)
-        NotificationService.send(a.patient,f'Appointment terverifikasi. Antrean {visit.queue}. Menunggu pemeriksaan perawat.')
+        NotificationService.send(a.patient,f'Janji temu terverifikasi. Antrean {visit.queue}. Menunggu pemeriksaan perawat.')
         return visit
 
 
@@ -225,16 +225,22 @@ class PharmacyService:
         else: raise ValueError('Aksi farmasi tidak dikenal.')
 
 
+# PBO - Abstraksi:
+# Kontrak amounts() wajib diimplementasikan oleh setiap strategi pembayaran.
 class PaymentProcessor(ABC):
     @abstractmethod
     def amounts(self, total):
-        """Return (insurance coverage, patient payable)."""
+        """Mengembalikan (tanggungan asuransi, jumlah yang dibayar pasien)."""
 
 
+# PBO - Pewarisan:
+# Strategi umum mewarisi kontrak PaymentProcessor dan mengimplementasikan amounts().
 class GeneralPayment(PaymentProcessor):
     def amounts(self,total): return 0,total
 
 
+# PBO - Polimorfisme:
+# amounts() pada strategi BPJS menghasilkan tanggungan berbeda dari strategi umum.
 class BPJSPayment(PaymentProcessor):
     def amounts(self,total): return total,0
 
@@ -250,6 +256,8 @@ class BillingService:
             items.extend(InvoiceItem(description=i.medicine.name,category='medicine',quantity=i.quantity,price=i.price) for i in v.prescription.items)
         total=sum(i.quantity*i.price for i in items)
         processor=BPJSPayment() if v.appointment.insurance else GeneralPayment()
+        # PBO - Polimorfisme:
+        # Pemanggilan amounts() yang sama mengikuti implementasi objek strategi terpilih.
         coverage,payable=processor.amounts(total)
         inv=Invoice(visit=v,number=f'INV-{v.appointment.date:%Y%m%d}-{v.id:05}',subtotal=total,coverage=coverage,payable=payable,items=items)
         db.session.add(inv)
@@ -258,7 +266,7 @@ class BillingService:
     @staticmethod
     def pay(v, actor, data):
         inv=v.invoice
-        if not inv: raise ValueError('Invoice belum tersedia.')
+        if not inv: raise ValueError('Tagihan belum tersedia.')
         discount=number(data,'discount',0,inv.subtotal,True)
         method='BPJS' if v.appointment.insurance else required(data,'method',24)
         if method not in ('BPJS','Tunai','Transfer','QRIS','Debit'): raise ValueError('Metode pembayaran tidak valid.')

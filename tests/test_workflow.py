@@ -30,7 +30,7 @@ def verified(client,insurance=False):
     response=client.post(f'/appointments/{aid}/verify')
     assert response.status_code==302
     v=Visit.query.filter_by(appointment_id=aid).one()
-    # Move test appointment to today so downstream clinical actions are valid.
+    # Ubah tanggal janji uji menjadi hari ini agar pemeriksaan berikutnya dapat dilakukan.
     v.appointment.date=date.today(); db.session.commit()
     return v.id
 
@@ -54,7 +54,7 @@ def examined(client,insurance=False):
 def test_complete_cross_role_workflow(client,insurance):
     vid=examined(client,insurance)
     v=db.session.get(Visit,vid); mid=v.prescription.items[0].medicine_id; before=db.session.get(Medicine,mid).stock
-    # Referral is issued by the assigned doctor only.
+    # Rujukan diterbitkan hanya oleh dokter yang ditugaskan.
     client.post(f'/visits/{vid}/referral',data=dict(hospital='RS Tujuan',specialist='Penyakit Dalam',reason='Evaluasi lanjut'))
     assert Referral.query.filter_by(visit_id=vid).count()==1
     login(client,'apoteker')
@@ -190,7 +190,7 @@ def test_verified_reschedule_releases_slot_and_requires_reverification(client):
 
 def test_invalid_input_and_reminders(client):
     aid=book(client); a=db.session.get(Appointment,aid)
-    # Reminder generation must be idempotent for repeated polling.
+    # Pembuatan pengingat harus idempoten saat polling dilakukan berulang.
     from datetime import datetime
     when=datetime.now()+timedelta(hours=1)
     a.date=when.date(); a.time=when.strftime('%H:%M'); db.session.commit()
@@ -269,7 +269,7 @@ def test_nurse_completed_screening_and_clinical_page_render(client):
     assert b'INTERNAL SECRET' not in client.get(f'/visits/{vid}').data
     login(client,'fakih')
     assert b'INTERNAL SECRET' in client.get(f'/visits/{vid}').data
-    # Cancel/reschedule cannot rewind a clinical visit.
+    # Pembatalan atau perubahan jadwal tidak boleh mengembalikan tahap kunjungan yang sudah diperiksa.
     login(client,'pasien'); a=db.session.get(Visit,vid).appointment
     client.post(f'/appointments/{a.id}/cancel'); db.session.expire_all()
     assert db.session.get(Visit,vid).status==VisitStatus.WAITING_PHARMACY

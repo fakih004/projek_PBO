@@ -3,10 +3,14 @@ from datetime import date
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
+# PBO - Abstraksi:
+# Skema dasar menyatukan kontrak validasi input API melalui Pydantic, bukan ABC domain.
 class APIModel(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
 
+# PBO - Pewarisan:
+# LoginInput mewarisi konfigurasi dan perilaku validasi dari APIModel.
 class LoginInput(APIModel):
     email: str = Field(min_length=3, max_length=160)
     password: str = Field(min_length=8, max_length=128)

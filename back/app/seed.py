@@ -1,4 +1,4 @@
-"""Idempotent starter data for local development."""
+"""Data awal idempoten untuk pengembangan lokal."""
 from datetime import date, timedelta
 
 from sqlalchemy import select
@@ -28,7 +28,7 @@ DEMO_ACCOUNTS = [
 
 
 def seed_database(db: Session) -> bool:
-    """Seed only a new database. Returns True when data was inserted."""
+    """Mengisi data awal hanya pada database baru. Mengembalikan True jika data ditambahkan."""
     if db.scalar(select(User.id).limit(1)):
         return False
 

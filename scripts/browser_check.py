@@ -1,4 +1,4 @@
-"""Run against the local development server. Saves actual UI evidence under docs/screenshots."""
+"""Jalankan pada server pengembangan lokal. Menyimpan bukti tampilan di docs/screenshots."""
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 
@@ -19,7 +19,7 @@ def main():
         for width in [375,768,1366,1920]:
             page.set_viewport_size({'width':width,'height':900})
             page.screenshot(path=str(OUT/f'landing-{width}.png'),full_page=True)
-            assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), f'Landing overflow {width}'
+            assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), f'Halaman awal melebar melebihi layar: {width}'
         page.goto('http://127.0.0.1:5000/login')
         page.locator('[name=email]').fill('admin@medikahusada.local')
         page.locator('[name=password]').fill('Admin123!')
@@ -28,7 +28,7 @@ def main():
         for width in [375,768,1366,1920]:
             page.set_viewport_size({'width':width,'height':900})
             page.screenshot(path=str(OUT/f'admin-{width}.png'),full_page=True)
-            assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'),f'Dashboard overflow {width}'
+            assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'),f'Dashboard melebar melebihi layar: {width}'
         page.set_viewport_size({'width':375,'height':900})
         page.get_by_role('button',name='Buka navigasi').click()
         assert 'open' in page.locator('#sidebar').get_attribute('class')
@@ -51,7 +51,7 @@ def main():
             page.get_by_role('button',name='Keluar',exact=True).click()
         assert not errors,errors
         browser.close()
-        print('Browser check passed: 5 roles, receipt modal, booking slots, navigation, 4 viewport sizes; no JS errors.')
+        print('Pemeriksaan browser lulus: 5 peran, dialog struk, slot pemesanan, navigasi, 4 ukuran layar; tanpa error JavaScript.')
 
 
 if __name__=='__main__': main()

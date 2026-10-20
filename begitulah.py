@@ -1,12 +1,12 @@
 # ==============================================================================
 # SISTEM INFORMASI MANAJEMEN KLINIK MEDIKA HUSADA (SIM-KLINIK)
-# Berbasis Python Object-Oriented Programming (OOP - 4 Pilar) + Web UI Flask & Tailwind/CSS
+# Berbasis Python dengan 4 pilar PBO serta antarmuka web Flask & Tailwind/CSS
 # ==============================================================================
 # STRUKTUR FOLDER & ARTIFAK PROYEK:
-# Proyek ini dirancang mandiri (single-file runnable atau modular bundle)
+# Proyek ini dapat dijalankan sebagai satu file atau kumpulan modul.
 # Jalankan langsung dengan: python app.py
 # Kebutuhan library minimal: pip install flask
-# Database otomatis dibuat via SQLite (medika_husada.db)
+# Database otomatis dibuat menggunakan SQLite (medika_husada.db)
 # ==============================================================================
 
 import os
@@ -18,37 +18,39 @@ from abc import ABC, abstractmethod
 from flask import Flask, render_template_string, request, redirect, url_for, session, jsonify, flash
 
 # ==============================================================================
-# BAGIAN 1: IMPLEMENTASI 4 PILAR OOP (PBO)
+# BAGIAN 1: IMPLEMENTASI 4 PILAR PBO
 # ==============================================================================
 """
-1. ABSTRACTION:
+1. ABSTRAKSI:
    - Kelas abstrak `Pengguna` mendefinisikan interface umum untuk login dan otorisasi peran via `@abstractmethod get_role_dashboard()`.
    - Kelas abstrak `LayananKlinik` mendefinisikan kontrak kalkulasi tarif tindakan / obat.
 
-2. INHERITANCE:
+2. PEWARISAN:
    - Kelas `Pasien`, `AdminKasir`, `Perawat`, `Dokter`, dan `Apoteker` mewarisi kelas `Pengguna`.
-   - Menggunakan mekanisme reusable properties (username, password, nama_lengkap, role).
+   - Menggunakan kembali atribut yang diwarisi (username, password, nama_lengkap, role).
 
-3. ENCAPSULATION:
+3. ENKAPSULASI:
    - Variabel private/protected seperti `__password`, `__saldo_resep`, `_nomor_bpjs` diakses
      hanya melalui getter/setter atau method verifikasi internal.
 
-4. POLYMORPHISM:
+4. POLIMORFISME:
    - Method `get_role_dashboard()` dan `hitung_biaya_akhir()` diimplementasikan
-     berbeda sesuai jenis user atau tipe pembayaran (Pasien BPJS vs Umum).
+     berbeda sesuai jenis pengguna atau tipe pembayaran (pasien BPJS atau umum).
 """
 
-# --- 1. ABSTRACTION & INHERITANCE: BASE USER ---
+# PBO - Abstraksi:
+# Class Pengguna menjadi dasar kontrak akses dashboard sesuai peran.
 class Pengguna(ABC):
     def __init__(self, id_user, username, password, nama_lengkap, no_telp, role):
         self._id_user = id_user
         self._username = username
-        self.__password = password  # Encapsulation (Private)
+        self.__password = password  # Atribut internal dengan name mangling Python.
         self.nama_lengkap = nama_lengkap
         self.no_telp = no_telp
         self.role = role
 
-    # Encapsulation: Getter & Verifier
+    # PBO - Enkapsulasi:
+    # Method ini mengatur pemeriksaan password tanpa mengembalikan nilainya.
     def verify_password(self, input_password):
         return self.__password == input_password
 
@@ -60,7 +62,7 @@ class Pengguna(ABC):
 
     @abstractmethod
     def get_role_dashboard(self):
-        """Metode abstrak yang wajib dioverride oleh turunan (Abstraction & Polymorphism)"""
+        """Method abstrak yang wajib diimplementasikan oleh class turunan (abstraksi dan polimorfisme)."""
         pass
 
 
@@ -180,7 +182,8 @@ class KunjunganAntrean:
         self.__status = status_baru
 
 
-# --- POLYMORPHISM DALAM PERHITUNGAN STRUK BIAYA ---
+# PBO - Polimorfisme:
+# Method kalkulasi memiliki perilaku berbeda sesuai object perhitungan struk.
 class PerhitunganStruk(ABC):
     @abstractmethod
     def kalkulasi(self, total_tindakan, total_obat):
@@ -216,7 +219,7 @@ class StrukBPJS(PerhitunganStruk):
 
 
 # ==============================================================================
-# BAGIAN 2: DATABASE INITIALIZER (SQLITE)
+# BAGIAN 2: INISIALISASI DATABASE (SQLITE)
 # ==============================================================================
 DB_PATH = "medika_husada.db"
 
@@ -224,7 +227,7 @@ def init_db():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    # Tabel Users
+    # Tabel pengguna
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -365,42 +368,42 @@ def init_db():
     )
     """)
 
-    # --- SEEDING DATA AWAL (Jadwal Dokter Sesuai Permintaan & Data Master) ---
+    # --- PENGISIAN DATA AWAL (Jadwal Dokter Sesuai Permintaan & Data Induk) ---
     cursor.execute("SELECT COUNT(*) FROM users")
     if cursor.fetchone()[0] == 0:
-        # Default Admin & Kasir (digabung sesuai permintaan)
+        # Admin & Kasir bawaan (digabung sesuai permintaan)
         cursor.execute("""
         INSERT INTO users (username, password, nama_lengkap, no_telp, role)
         VALUES ('admin', 'admin123', 'Siti Rahmawati, S.Ak', '081234567890', 'admin_kasir')
         """)
 
-        # Default Perawat
+        # Perawat bawaan
         cursor.execute("""
         INSERT INTO users (username, password, nama_lengkap, no_telp, role, no_str)
         VALUES ('perawat', 'perawat123', 'Ns. Dian Lestari, S.Kep', '081298765432', 'perawat', 'STR-3273-9821')
         """)
 
-        # Default Dokter Umum: Muhammad fakih nabal
+        # Dokter bawaan Umum: Muhammad fakih nabal
         cursor.execute("""
         INSERT INTO users (username, password, nama_lengkap, no_telp, role, spesialisasi, ruangan)
         VALUES ('dr_fakih', 'dokter123', 'dr. Muhammad Fakih Nabal', '081345678901', 'dokter', 'Dokter Umum', 'Poli Umum (R.01)')
         """)
         doc1_user_id = cursor.lastrowid
 
-        # Default Dokter Kandungan: Alia Fransiska Dewi Arum Trilestari
+        # Dokter bawaan Kandungan: Alia Fransiska Dewi Arum Trilestari
         cursor.execute("""
         INSERT INTO users (username, password, nama_lengkap, no_telp, role, spesialisasi, ruangan)
         VALUES ('dr_alia', 'dokter123', 'dr. Alia Fransiska Dewi Arum Trilestari, Sp.OG', '081398765432', 'dokter', 'Spesialis Obstetri & Ginekologi (Kandungan)', 'Poli Kandungan & KIA (R.02)')
         """)
         doc2_user_id = cursor.lastrowid
 
-        # Default Apoteker
+        # Apoteker bawaan
         cursor.execute("""
         INSERT INTO users (username, password, nama_lengkap, no_telp, role)
         VALUES ('apoteker', 'apoteker123', 'apt. Rahmat Hidayat, S.Farm', '081355554444', 'apoteker')
         """)
 
-        # Default Pasien Contoh (Budi Santoso & Ibu Ratna)
+        # Pasien contoh bawaan (Budi Santoso & Ibu Ratna)
         cursor.execute("""
         INSERT INTO users (username, password, nama_lengkap, no_telp, role, no_rm, nik, no_bpjs, gol_darah)
         VALUES ('pasien', 'pasien123', 'Bpk. Budi Santoso', '08122334455', 'pasien', 'KMH-2024-001', '3273201987654002', '0001827635411', 'O+')
@@ -411,7 +414,7 @@ def init_db():
         VALUES ('siti', 'siti123', 'Ibu Siti Aminah', '08127788990', 'pasien', 'KMH-2024-002', '3273201991054001', '', 'B+')
         """)
 
-        # Data Master Jadwal Dokter
+        # Data induk Jadwal Dokter
         cursor.execute("""
         INSERT INTO doctors (user_id, nama_dokter, spesialisasi, tipe_dokter, hari_praktek, jam_praktek, ruangan)
         VALUES (?, 'dr. Muhammad Fakih Nabal', 'Dokter Umum', 'Umum', 'Senin - Sabtu', '08:00 - 14:00 WIB', 'Poli Umum (R.01)')
@@ -422,7 +425,7 @@ def init_db():
         VALUES (?, 'dr. Alia Fransiska Dewi Arum Trilestari, Sp.OG', 'Spesialis Obstetri & Ginekologi (Kandungan)', 'Kandungan', 'Senin, Rabu, Jumat', '14:30 - 20:00 WIB', 'Poli Kandungan & KIA (R.02)')
         """, (doc2_user_id,))
 
-        # Data Master Obat & Panduan Minum
+        # Data induk Obat & Panduan Minum
         obat_list = [
             ('OBT-001', 'Paracetamol 500mg', 12000, 250, 'Diminum sesudah makan 1 tablet 3 kali sehari bila demam', 'Antipiretik & Analgesik untuk pereda demam dan sakit kepala'),
             ('OBT-002', 'Amoxicillin 500mg', 25000, 180, 'Diminum sesudah makan 1 kaplet 3 kali sehari wajib dihabiskan', 'Antibiotik spektrum luas'),
@@ -439,7 +442,7 @@ def init_db():
     conn.commit()
     conn.close()
 
-# Inisialisasi DB saat start
+# Inisialisasi database saat program dimulai
 init_db()
 
-print(">> Database Medika Husada siap dengan skema relasional & akun default.")
+print(">> Database Medika Husada siap dengan skema relasional & akun bawaan.")

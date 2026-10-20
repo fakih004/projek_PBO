@@ -1,2 +1,2 @@
-"""Medika Husada FastAPI backend package."""
+"""Paket backend FastAPI Medika Husada."""
 

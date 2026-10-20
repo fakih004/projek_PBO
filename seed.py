@@ -1,4 +1,4 @@
-"""Idempotent demo data. Existing users and operational records are never reset."""
+"""Data demo idempoten. Pengguna dan data operasional yang sudah ada tidak akan direset."""
 from datetime import date, timedelta
 from clinic import create_app, db
 from clinic.models import *
@@ -9,7 +9,7 @@ def seed_data(demo=True):
     accounts=[('komang','Komang',Role.ADMIN,'Admin123!'),
               ('gea','Gea',Role.NURSE,'Perawat123!'),
               ('bintang','Bintang',Role.PHARMACIST,'Apoteker123!'),
-        ('fatur','Fatur',Role.CASHIER,'Kasir123!'), #kalau masih gabisa tambah akun manual aja di admin , ,
+        ('fatur','Fatur',Role.CASHIER,'Kasir123!'), # Jika akun belum tersedia, tambahkan secara manual melalui menu admin.
         ('perawat','Ns. Dian Lestari',Role.NURSE,'Perawat123!'),
         ('apoteker','apt. Rahmat Hidayat',Role.PHARMACIST,'Apoteker123!'),
         ('fakih','dr. Muhammad Fakih Nabal',Role.DOCTOR,'Dokter123!'),
@@ -56,7 +56,7 @@ def seed_data(demo=True):
         for i,p in enumerate(patients):
             if i>=len(slots): break
             AppointmentService.book(p,dict(doctor_id=doctor.id,date=day.isoformat(),time=slots[i],complaint='Konsultasi kesehatan rutin',insurance='bpjs' if p.bpjs else 'general'))
-        # A separate completed historical example gives the portal a printable receipt.
+        # Contoh kunjungan selesai menyediakan riwayat dengan struk yang dapat dicetak.
         p=patients[0]
         a=Appointment(patient=p,doctor=doctor,date=date.today()-timedelta(days=7),time='08:00',complaint='Kontrol kesehatan (data demo)',insurance=False,status=AppointmentStatus.COMPLETED)
         v=Visit(appointment=a,queue='DEMO-001',status=VisitStatus.COMPLETED)

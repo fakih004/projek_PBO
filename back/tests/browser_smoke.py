@@ -1,4 +1,4 @@
-"""Manual browser smoke test; requires backend :8000 and frontend :5173 running."""
+"""Uji dasar browser secara manual; backend :8000 dan frontend :5173 harus berjalan."""
 import json
 from pathlib import Path
 

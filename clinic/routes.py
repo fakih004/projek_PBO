@@ -460,7 +460,7 @@ def medicines():
             db.session.add(med); db.session.flush()
             delta=number(request.form,'delta',-1000000,1000000,True)
             if delta>0 and current_user.role==Role.PHARMACIST:
-                raise ValueError('Restok masuk harus diajukan melalui pembelian supplier dan disetujui admin.')
+                raise ValueError('Penambahan stok harus diajukan melalui pembelian pemasok dan disetujui admin.')
             if delta: med.change_stock(delta,required(request.form,'reason',200),current_user.id)
         return mutate(save,url_for('web.medicines'))
     return render_template('medicines.html',medicines=Medicine.query.order_by(Medicine.name).all(),movements=StockMovement.query.order_by(StockMovement.id.desc()).limit(40).all(),today=date.today())
@@ -504,7 +504,7 @@ def supplier_purchase_action(purchase_id,action):
                 purchase.supplier_invoice=generate_supplier_invoice_number(received_at)
             quantity=purchase.requested_quantity
             amount=purchase.requested_total
-            movement_reason=f'Pembelian supplier {purchase.supplier}; pengajuan #{purchase.id}'[:200]
+            movement_reason=f'Pembelian pemasok {purchase.supplier}; pengajuan #{purchase.id}'[:200]
             purchase.medicine.change_stock(quantity,movement_reason,current_user.id)
             purchase.received_quantity=quantity
             purchase.actual_unit_cost=purchase.estimated_unit_cost
@@ -613,7 +613,7 @@ def reports():
     transactions=[dict(category='Pendapatan',invoice=p.invoice.number,date=p.created_at,party=p.invoice.visit.patient.user.name,
         method=p.method,amount=p.amount,visit_id=p.invoice.visit_id,expense_id=None) for p in payments]
     transactions.extend(dict(category='Pengeluaran',invoice=e.number,date=e.created_at,party=e.supplier,
-        method='Pembelian supplier',amount=e.amount,visit_id=None,expense_id=e.id) for e in expenses)
+        method='Pembelian pemasok',amount=e.amount,visit_id=None,expense_id=e.id) for e in expenses)
     transactions.sort(key=lambda item:item['date'],reverse=True)
     daily_chart=(end-start).days<=45
     chart_buckets={}
@@ -638,7 +638,7 @@ def reports():
         stream=io.StringIO(); writer=csv.writer(stream)
         writer.writerow(['Kategori','Invoice','Tanggal','Pihak','Metode','Jumlah','Diskon','BPJS'])
         for p in payments: writer.writerow(['Pendapatan',p.invoice.number,p.created_at,p.invoice.visit.patient.user.name,p.method,p.amount,p.invoice.discount,p.invoice.coverage])
-        for expense in expenses: writer.writerow(['Pengeluaran',expense.number,expense.created_at,expense.supplier,'Pembelian supplier',expense.amount,0,0])
+        for expense in expenses: writer.writerow(['Pengeluaran',expense.number,expense.created_at,expense.supplier,'Pembelian pemasok',expense.amount,0,0])
         return Response('\ufeff'+stream.getvalue(),mimetype='text/csv',headers={'Content-Disposition':'attachment; filename=laporan.csv'})
     return render_template('reports.html',payments=payments,transactions=transactions,chart_points=chart_points,
         chart_interval='harian' if daily_chart else 'bulanan',visits=visits,totals=totals,start=start,end=end,
@@ -662,7 +662,7 @@ def finance_api():
     transactions=[dict(category='Pendapatan',invoice=p.invoice.number,date=p.created_at.isoformat(),
         party=p.invoice.visit.patient.user.name,amount=p.amount,method=p.method) for p in payments]
     transactions.extend(dict(category='Pengeluaran',invoice=e.number,date=e.created_at.isoformat(),
-        party=e.supplier,amount=e.amount,method='Pembelian supplier') for e in expenses)
+        party=e.supplier,amount=e.amount,method='Pembelian pemasok') for e in expenses)
     transactions.sort(key=lambda item:item['date'],reverse=True)
     revenue=sum(p.amount for p in payments); expense_total=sum(e.amount for e in expenses)
     return jsonify(transactions=transactions,revenue=revenue,

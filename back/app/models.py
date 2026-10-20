@@ -86,6 +86,8 @@ class User(Base):
     patient: Mapped[Patient | None] = relationship(back_populates="user", uselist=False)
     doctor: Mapped[Doctor | None] = relationship(back_populates="user", uselist=False)
 
+    # PBO - Enkapsulasi:
+    # Method menyembunyikan proses hashing; atribut password_hash sendiri masih publik.
     def set_password(self, password: str) -> None:
         self.password_hash = hash_password(password)
 
