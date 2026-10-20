@@ -1,4 +1,4 @@
-:root{
+﻿:root{
   --primary:#17c2d7;--primary-dark:#1194a5;--primary-soft:#e6f8fb;
   --surface:#fff;--background:#f4f7f6;--text:#3c4145;--muted:#8e9aa3;
   --border:#e7ecef;--success:#22af46;--warning:#f3ad06;--danger:#de4848;
@@ -228,7 +228,7 @@ details .card{margin-top:15px}
 .medicine-detail:last-child{border:0}
 .medicine-detail summary{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap}
 .medicine-detail summary:after{content:"+";color:var(--primary);font-size:18px}
-.medicine-detail[open] summary:after{content:"−"}
+.medicine-detail[open] summary:after{content:"âˆ’"}
 .slots{display:flex;flex-wrap:wrap;gap:9px;margin:11px 0 22px;min-height:40px}
 .slot{background:#fff;border:1px solid #dfe5e8;padding:8px 16px;border-radius:.3rem;font-size:11px;min-height:38px;color:#5e686f}
 .slot.selected{background:var(--primary);color:#fff;border-color:var(--primary)}
@@ -254,8 +254,8 @@ dd{margin:0;overflow-wrap:anywhere}
 .hero p{font-size:13px;color:#748087;max-width:470px;line-height:1.8}
 .hero .actions{margin:25px 0}
 .hero-proof{display:flex;gap:18px;font-size:10px;color:#748087;flex-wrap:wrap}
-.hero-visual{position:relative;height:365px;border-radius:.75rem;background:linear-gradient(90deg,rgba(17,148,165,.72),rgba(23,194,215,.18)),url('../hospital/assets/images/hospital_auth_bg.jpg') center/cover;overflow:hidden;display:grid;place-items:center;box-shadow:0 18px 45px rgba(39,48,54,.14)}
-.cross-art{font-size:125px;color:rgba(255,255,255,.9);line-height:1;text-shadow:0 10px 25px rgba(20,80,90,.16)}
+.hero-visual{position:relative;height:auto;aspect-ratio:16/9;border-radius:.75rem;background:linear-gradient(90deg,rgba(17,148,165,.40),rgba(23,194,215,.08)),url('../images/hospital-illustration.jpeg') center/cover;overflow:hidden;display:grid;place-items:center;box-shadow:0 18px 45px rgba(39,48,54,.14)}
+.cross-art{display:none}
 .floating-tag{position:absolute;right:18px;top:20px;background:rgba(255,255,255,.94);border-radius:20px;padding:8px 13px;font-size:9px;font-weight:700;color:var(--primary-dark)}
 .hero-note{position:absolute;bottom:22px;left:22px;right:22px;background:rgba(255,255,255,.95);border-radius:.55rem;padding:14px;display:flex;align-items:center;gap:12px}
 .hero-note .brand-icon,.brand-icon{display:grid;place-items:center;background:var(--primary);color:#fff;width:38px;height:38px;border-radius:50%;font-size:20px;flex-shrink:0}
@@ -482,7 +482,7 @@ dialog::backdrop{background:rgba(31,42,47,.48)}
   .public-nav nav{display:none;position:absolute;top:70px;left:16px;right:16px;z-index:30;background:#fff;padding:16px;border-radius:.55rem;box-shadow:0 10px 30px rgba(39,48,54,.16);flex-direction:column;align-items:stretch}
   .public-nav nav.open{display:flex}.public-nav nav a{text-align:center}
   .public-main{padding:0 16px}.public-main>section{margin:35px 0}
-  .hero{grid-template-columns:1fr;padding:8px 0}.hero h1{font-size:37px}.hero p{font-size:12px}.hero-visual{height:250px}
+  .hero{grid-template-columns:1fr;padding:8px 0}.hero h1{font-size:37px}.hero p{font-size:12px}.hero-visual{height:250px;aspect-ratio:auto}
   .hero-note{left:13px;right:13px;bottom:16px;padding:11px}.floating-tag{font-size:8px;right:12px}
   .services{gap:11px}.services .card{padding:15px}.services h3{font-size:12px}.services p{font-size:9px}.service-icon{margin-bottom:12px}
   .journey{padding:22px 18px}.journey-steps{display:grid;grid-template-columns:repeat(3,1fr)}
@@ -517,3 +517,5 @@ dialog::backdrop{background:rgba(31,42,47,.48)}
   tr,.prescription-list article{break-inside:avoid}a{color:inherit}.receipt-meta{grid-template-columns:1fr 1fr}.badge{print-color-adjust:exact}
   @page{size:A4;margin:12mm}
 }
+
+
