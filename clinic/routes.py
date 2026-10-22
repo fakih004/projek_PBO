@@ -467,6 +467,15 @@ def read_notifications():
     return jsonify(ok=True,message='Notifikasi ditandai dibaca.')
 
 
+@web.post('/api/notifications/<int:notification_id>/read')
+@login_required
+def read_notification(notification_id):
+    notification=Notification.query.filter_by(id=notification_id,user_id=current_user.id).first_or_404()
+    notification.read=True
+    db.session.commit()
+    return jsonify(ok=True,message='Notifikasi ditandai dibaca.')
+
+
 @web.route('/admin/patients',methods=['GET','POST'])
 @roles(Role.ADMIN)
 def patients():

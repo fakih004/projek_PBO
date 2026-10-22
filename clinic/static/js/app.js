@@ -120,8 +120,24 @@ async function poll() {
     const list = document.querySelector('#notification-list'); list.replaceChildren();
     if (!data.items.length) list.textContent = 'Belum ada notifikasi.';
     data.items.forEach(n => {
-      const item = document.createElement('div'); item.className = `notification-item ${n.read ? '' : 'unread'}`; item.textContent = n.message;
-      const time = document.createElement('small'); time.textContent = new Date(n.time).toLocaleString('id-ID'); item.append(time); list.append(item);
+      const item = document.createElement('div'); item.className = `notification-item ${n.read ? 'read' : 'unread'}`;
+      const copy = document.createElement('div'); copy.className = 'notification-copy';
+      const message = document.createElement('p'); message.className = `notification-message ${n.read ? '' : 'unread-text'}`; message.textContent = n.message;
+      const time = document.createElement('small'); time.textContent = new Date(n.time).toLocaleString('id-ID'); copy.append(message, time);
+      const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.className = 'notification-read-checkbox'; checkbox.checked = n.read; checkbox.disabled = n.read; checkbox.title = 'Tandai sudah dibaca'; checkbox.setAttribute('aria-label', 'Tandai notifikasi sudah dibaca');
+      if (!n.read) checkbox.addEventListener('change', async () => {
+        if (!checkbox.checked) return;
+        checkbox.disabled = true;
+        try {
+          const result = await fetch(`/api/notifications/${n.id}/read`, { method: 'POST', headers: { 'X-CSRFToken': csrf } });
+          if (!result.ok || result.redirected) throw new Error();
+          await poll();
+        } catch {
+          checkbox.checked = false; checkbox.disabled = false;
+          toast('Tidak dapat menandai notifikasi. Coba lagi.', true);
+        }
+      });
+      item.append(copy, checkbox); list.append(item);
     });
     if (latestNotification !== null) data.items.filter(n => n.id > latestNotification).reverse().forEach(n => toast(n.message));
     latestNotification = Math.max(latestNotification || 0, ...data.items.map(n => n.id));

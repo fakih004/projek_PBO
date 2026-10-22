@@ -352,9 +352,15 @@ footer small{font-weight:400;font-size:9px}
 .toast.error{border-left-color:var(--danger)}
 .toast button{border:0;background:none;color:var(--muted);font-size:18px}
 .notification-panel{position:fixed;top:72px;right:20px;width:min(370px,calc(100vw - 30px));max-height:75vh;overflow:auto;z-index:160;background:#fff;border:1px solid var(--border);border-radius:.55rem;box-shadow:0 12px 35px rgba(39,48,54,.18);padding:18px}
-.notification-item{padding:12px;border-radius:.35rem;font-size:11px;border-bottom:1px solid var(--border)}
-.notification-item.unread{background:#eefafb}
-.notification-item small{margin-top:7px}
+.notification-item{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:12px;border-radius:.35rem;font-size:11px;border-bottom:1px solid var(--border);transition:background-color .15s ease}
+.notification-item.unread{background:#fff}
+.notification-item.read{background:#f8fafc}
+.notification-copy{flex:1;min-width:0}
+.notification-message{margin:0;color:#59656c;font-size:11px;line-height:1.5}
+.notification-message.unread-text{color:#263238;font-weight:700}
+.notification-item small{display:block;margin-top:7px;color:#929da3;font-size:9px}
+.notification-read-checkbox{flex:0 0 16px;width:16px!important;height:16px;min-height:16px!important;margin:2px 0 0!important;padding:0!important;accent-color:#0d9488;cursor:pointer}
+.notification-read-checkbox:disabled{cursor:default}
 .notification-panel .section-head{margin-bottom:7px}
 .notification-panel h3{margin:0}
 dialog{border:0;border-radius:.55rem;padding:26px;width:min(450px,calc(100vw - 30px));box-shadow:0 20px 45px rgba(31,42,47,.3);color:var(--text)}
