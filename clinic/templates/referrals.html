@@ -1,5 +1,12 @@
 {% extends 'base.html' %}{% from 'macros.html' import pagination,csrf %}
 {% block content %}
+{% if current_user.role.value=='doctor' %}
+<div class="page-head"><div><span class="eyebrow">PERSETUJUAN DOKTER</span><h1>Persetujuan rujukan</h1><p class="muted">Tinjau surat rujukan untuk kunjungan yang Anda tangani.</p></div></div>
+<section class="card"><div class="table-wrap"><table><thead><tr><th>Nomor surat</th><th>Pasien</th><th>Tujuan</th><th>Tanggal</th><th>Aksi</th></tr></thead><tbody>
+{% for v in doctor_pending %}<tr><td><strong>{{ v.referral.number }}</strong></td><td>{{ v.patient.user.name }}<small>{{ v.patient.mr }}</small></td><td>{{ v.referral.specialist }}<small>{{ v.referral.hospital }}</small></td><td>{{ v.referral.created_at.strftime('%d/%m/%Y') }}</td><td><form method="post" action="{{ url_for('web.sign_referral',visit_id=v.id) }}">{{ csrf() }}<button class="button small">Tandatangani</button></form></td></tr>
+{% else %}<tr><td colspan="5" class="empty">Tidak ada surat rujukan yang menunggu tanda tangan.</td></tr>{% endfor %}
+</tbody></table></div></section>
+{% else %}
 <div class="page-head"><div><span class="eyebrow">DOKUMEN KLINIS</span><h1>Surat rujukan</h1><p class="muted">Lihat surat rujukan yang diterbitkan untuk pasien.</p></div></div>
 <section class="card">
   <form class="filter-bar" role="search"><input name="q" value="{{ request.args.get('q','') }}" placeholder="Cari pasien, nomor surat, atau rumah sakit" aria-label="Cari surat rujukan"><button class="button secondary">Cari</button></form>
@@ -14,9 +21,10 @@
   </article>{% else %}<p class="empty">Tidak ada permintaan rujukan yang menunggu.</p>{% endfor %}
   <div class="section-head"><div><h2>Surat yang sudah dibuat</h2><p class="muted">Surat rujukan yang sudah diterbitkan admin.</p></div></div>
   <div class="table-wrap"><table><thead><tr><th>Nomor surat</th><th>Pasien</th><th>Tujuan rujukan</th><th>Tanggal</th><th>Aksi</th></tr></thead><tbody>
-    {% for v in page.items %}<tr><td><strong>{{ v.referral.number }}</strong></td><td><strong>{{ v.patient.user.name }}</strong><small>{{ v.patient.mr }}</small></td><td>{{ v.referral.specialist }}<small>{{ v.referral.hospital }}</small></td><td>{{ v.referral.created_at.strftime('%d/%m/%Y') }}</td><td><a class="button secondary small" href="{{ url_for('web.visit',visit_id=v.id) }}">Lihat surat →</a></td></tr>
+    {% for v in page.items %}<tr><td><strong>{{ v.referral.number }}</strong><small><span class="badge">{{ v.referral.status }}</span></small></td><td><strong>{{ v.patient.user.name }}</strong><small>{{ v.patient.mr }}</small></td><td>{{ v.referral.specialist }}<small>{{ v.referral.hospital }}</small></td><td>{{ v.referral.created_at.strftime('%d/%m/%Y') }}</td><td>{% if v.referral.status=='Selesai' %}<a class="button secondary small" href="{{ url_for('web.visit',visit_id=v.id) }}">Cetak Surat</a>{% else %}<span class="badge">Menunggu Dokter</span>{% endif %}</td></tr>
     {% else %}<tr><td colspan="5" class="empty">Belum ada surat rujukan yang sesuai.</td></tr>{% endfor %}
   </tbody></table></div>
   {{ pagination(page) }}
 </section>
+{% endif %}
 {% endblock %}

@@ -61,7 +61,7 @@
         {% elif current_user.role.value=='admin' %}
           {% set links=links+[('web.patients','fa-users','Pendaftaran & Pasien'),('web.appointments','fa-calendar-check-o','Jadwal & Janji Temu'),('web.doctors','fa-user-md','Dokter & Jadwal'),('web.records','fa-stethoscope','Kunjungan & Rekam Medis'),('web.referrals','fa-file-text-o','Surat Rujukan'),('web.medicines','fa-medkit','Farmasi'),('web.supplier_purchases','fa-check-square-o','Persetujuan Supplier'),('web.reports','fa-line-chart','Laporan & Keuangan'),('web.users','fa-cogs','Pengguna & Akses')] %}
         {% elif current_user.role.value=='doctor' %}
-          {% set links=links+[('web.records','fa-file-text-o','Rekam Medis')] %}
+          {% set links=links+[('web.records','fa-file-text-o','Rekam Medis'),('web.referrals','fa-check-square-o','Persetujuan Rujukan')] %}
         {% elif current_user.role.value=='pharmacist' %}
           {% set links=links+[('web.medicines','fa-medkit','Obat & Persediaan'),('web.supplier_purchases','fa-shopping-cart','Pembelian Supplier')] %}
         {% elif current_user.role.value=='cashier' %}

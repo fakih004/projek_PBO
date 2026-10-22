@@ -16,9 +16,13 @@
           <p>{{ 'Lengkapi identitas untuk mulai menggunakan layanan klinik.' if register else 'Masuk untuk mengakses layanan dan ruang kerja Anda.' }}</p>
         </div>
         <div class="body">
-          <form method="post" class="form-auth-small">
+          <form method="post" class="form-auth-small" {% if register %}enctype="multipart/form-data"{% endif %}>
             {{ csrf() }}
-            {% if register %}{{ patient_fields() }}{% endif %}
+            {% if register %}{{ patient_fields() }}
+            <section class="identity-upload-section"><h2>Dokumen Identitas</h2><div class="identity-upload-grid">
+              <label class="identity-upload-field"><span>Upload KTP <b class="required">*</b></span><input type="file" name="foto_ktp" accept="image/jpeg,image/png,.jpg,.jpeg,.png" required><small>Format: JPG, PNG. Maksimal 2MB.</small></label>
+              <label class="identity-upload-field"><span>Upload Kartu BPJS <small>(Opsional)</small></span><input type="file" name="foto_bpjs" accept="image/jpeg,image/png,.jpg,.jpeg,.png"><small>Format: JPG, PNG. Maksimal 2MB.</small></label>
+            </div></section>{% endif %}
             <div class="form-grid{% if not register %} one{% endif %}">
               {{ field('email','Email','email') }}
               <div class="password-field">{{ field('password','Password','password') }}<button class="text-button" type="button" data-password aria-label="Tampilkan password" aria-pressed="false">Lihat</button></div>

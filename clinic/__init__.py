@@ -36,7 +36,7 @@ def create_app(config=None):
         SQLALCHEMY_DATABASE_URI=os.getenv('DATABASE_URL', 'sqlite:///medika.db'),
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
         SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE='Lax',
-        PERMANENT_SESSION_LIFETIME=timedelta(hours=8), MAX_CONTENT_LENGTH=1024*1024,
+        PERMANENT_SESSION_LIFETIME=timedelta(hours=8), MAX_CONTENT_LENGTH=5*1024*1024,
     )
     if config:
         app.config.update(config)
@@ -72,6 +72,20 @@ def create_app(config=None):
         if 'sip' not in {column['name'] for column in inspect(db.engine).get_columns('user')}:
             with db.engine.begin() as connection:
                 connection.execute(text('ALTER TABLE "user" ADD COLUMN sip VARCHAR(50)'))
+        if 'status' not in {column['name'] for column in inspect(db.engine).get_columns('referral')}:
+            with db.engine.begin() as connection:
+                connection.execute(text("ALTER TABLE referral ADD COLUMN status VARCHAR(24) NOT NULL DEFAULT 'Menunggu TTD'"))
+        if 'signed_at' not in {column['name'] for column in inspect(db.engine).get_columns('referral')}:
+            with db.engine.begin() as connection:
+                connection.execute(text('ALTER TABLE referral ADD COLUMN signed_at DATETIME'))
+        patient_columns={column['name'] for column in inspect(db.engine).get_columns('patient')}
+        with db.engine.begin() as connection:
+            if 'tempat_lahir' not in patient_columns:
+                connection.execute(text('ALTER TABLE patient ADD COLUMN tempat_lahir VARCHAR(100)'))
+            if 'foto_ktp' not in patient_columns:
+                connection.execute(text('ALTER TABLE patient ADD COLUMN foto_ktp VARCHAR(255)'))
+            if 'foto_bpjs' not in patient_columns:
+                connection.execute(text('ALTER TABLE patient ADD COLUMN foto_bpjs VARCHAR(255)'))
         Index('uq_user_sip', User.sip, unique=True).create(bind=db.engine, checkfirst=True)
         from .services import generate_supplier_invoice_number
         for purchase in SupplierPurchase.query.filter(SupplierPurchase.received_at.isnot(None)).all():

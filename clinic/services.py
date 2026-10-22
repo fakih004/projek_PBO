@@ -1,8 +1,10 @@
 """Layanan domain transaksional. Route melakukan commit sekali; kegagalan membatalkan seluruh perubahan transaksi."""
 from abc import ABC, abstractmethod
 from datetime import date, datetime, timedelta
+from pathlib import Path
 import math
 import secrets
+from flask import current_app
 from sqlalchemy import select, update
 from sqlalchemy.dialects.sqlite import insert
 from . import db
@@ -292,35 +294,66 @@ class BillingService:
 
 
 class PatientService:
+    MAX_IDENTITY_FILE_SIZE=2*1024*1024
+
     @staticmethod
-    def profile(patient, data):
+    def _save_identity_file(upload):
+        if not upload or not upload.filename:
+            return None
+        content=upload.stream.read(PatientService.MAX_IDENTITY_FILE_SIZE+1)
+        if len(content)>PatientService.MAX_IDENTITY_FILE_SIZE:
+            raise ValueError('Ukuran setiap dokumen maksimal 2MB.')
+        if content.startswith(b'\x89PNG\r\n\x1a\n'):
+            extension='.png'
+        elif content.startswith(b'\xff\xd8\xff') and content.rstrip().endswith(b'\xff\xd9'):
+            extension='.jpg'
+        else:
+            raise ValueError('Dokumen harus berupa gambar JPG atau PNG yang valid.')
+        folder=Path(current_app.instance_path)/'private_uploads'
+        folder.mkdir(parents=True,exist_ok=True)
+        filename=f'{secrets.token_hex(24)}{extension}'
+        (folder/filename).write_bytes(content)
+        return filename
+
+    @staticmethod
+    def profile(patient, data, files=None, require_ktp=False):
+        files=files or {}
         nik=required(data,'nik',16)
         if len(nik)!=16 or not nik.isdigit(): raise ValueError('NIK harus 16 digit.')
         try: birth=date.fromisoformat(data.get('birth_date',''))
         except ValueError: raise ValueError('Tanggal lahir tidak valid.')
         if birth>date.today() or birth.year<1900: raise ValueError('Tanggal lahir tidak valid.')
+        birth_place=required(data,'tempat_lahir',100)
         gender=data.get('gender')
         if gender not in ('Laki-laki','Perempuan'): raise ValueError('Pilih jenis kelamin.')
         phone=required(data,'phone',24)
         if not phone.lstrip('+').isdigit() or not 8<=len(phone)<=16: raise ValueError('Nomor telepon tidak valid.')
         bpjs=str(data.get('bpjs','')).strip() if data.get('has_bpjs') else ''
         if data.get('has_bpjs') and (len(bpjs)!=13 or not bpjs.isdigit()): raise ValueError('Nomor BPJS harus 13 digit.')
-        patient.nik=nik; patient.birth_date=birth; patient.gender=gender
+        patient.nik=nik; patient.tempat_lahir=birth_place; patient.birth_date=birth; patient.gender=gender
         patient.address=required(data,'address')
         patient.bpjs=bpjs; patient.bpjs_active=bool(bpjs)
         patient.user.name=required(data,'name',160); patient.user.phone=phone
+        ktp_upload=files.get('foto_ktp')
+        bpjs_upload=files.get('foto_bpjs')
+        if require_ktp and not patient.foto_ktp and (not ktp_upload or not ktp_upload.filename):
+            raise ValueError('Foto KTP wajib diunggah.')
+        if ktp_upload and ktp_upload.filename:
+            patient.foto_ktp=PatientService._save_identity_file(ktp_upload)
+        if bpjs_upload and bpjs_upload.filename:
+            patient.foto_bpjs=PatientService._save_identity_file(bpjs_upload)
         for key in ('allergies','history','surgery','medication','emergency'):
             setattr(patient,key,str(data.get(key,''))[:4000])
 
     @staticmethod
-    def register(data):
+    def register(data, files=None, require_ktp=False):
         email=required(data,'email',160).lower()
         if '@' not in email or '.' not in email.split('@')[-1]: raise ValueError('Email tidak valid.')
         if data.get('password')!=data.get('confirm'): raise ValueError('Konfirmasi password tidak cocok.')
         user=User(email=email,role=Role.PATIENT)
         user.set_password(required(data,'password',128))
         patient=Patient(user=user)
-        PatientService.profile(patient,data)
+        PatientService.profile(patient,data,files,require_ktp)
         db.session.add(user); db.session.add(patient); db.session.flush()
         patient.mr=f'KMH-{date.today().year}-{patient.id:05}'
         return user

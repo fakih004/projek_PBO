@@ -90,10 +90,13 @@ class Patient(db.Model):
     user_id=db.Column(db.ForeignKey('user.id'), unique=True, nullable=False)
     mr=db.Column(db.String(32), unique=True)
     nik=db.Column(db.String(16), unique=True, nullable=False)
+    tempat_lahir=db.Column(db.String(100))
     birth_date=db.Column(db.Date, nullable=False)
     gender=db.Column(db.String(16), nullable=False)
     address=db.Column(db.Text, nullable=False)
     bpjs=db.Column(db.String(13), default='')
+    foto_ktp=db.Column(db.String(255))
+    foto_bpjs=db.Column(db.String(255))
     bpjs_active=db.Column(db.Boolean, default=False)
     allergies=db.Column(db.Text, default='')
     history=db.Column(db.Text, default='')
@@ -354,6 +357,8 @@ class Referral(db.Model):
     specialist=db.Column(db.String(160), nullable=False)
     reason=db.Column(db.Text, nullable=False)
     notes=db.Column(db.Text, default='')
+    status=db.Column(db.String(24), default='Menunggu TTD', nullable=False)
+    signed_at=db.Column(db.DateTime)
     created_at=db.Column(db.DateTime, default=datetime.now)
 
 

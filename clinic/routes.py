@@ -1,8 +1,9 @@
 from datetime import date, datetime, timedelta
 from functools import wraps
+from pathlib import Path
 import csv
 import io
-from flask import Blueprint, render_template, request, redirect, url_for, flash, abort, jsonify, Response
+from flask import Blueprint, render_template, request, redirect, url_for, flash, abort, jsonify, Response, send_file, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError, OperationalError
@@ -92,7 +93,7 @@ def login_page():
 def register():
     if request.method=='POST':
         try:
-            user=PatientService.register(request.form)
+            user=PatientService.register(request.form,request.files,require_ktp=True)
             db.session.commit()
             login_user(user)
             return redirect(url_for('web.dashboard'))
@@ -163,8 +164,28 @@ def dashboard_fragment():
 @web.route('/profile',methods=['GET','POST'])
 @roles(Role.PATIENT)
 def profile():
-    if request.method=='POST': return mutate(lambda:PatientService.profile(current_user.patient,request.form),url_for('web.profile'))
+    if request.method=='POST': return mutate(lambda:PatientService.profile(current_user.patient,request.form,request.files),url_for('web.profile'))
     return render_template('profile.html',patient=current_user.patient)
+
+
+@web.get('/documents/patients/<int:pid>/<kind>')
+@login_required
+def patient_document(pid,kind):
+    patient=db.get_or_404(Patient,pid)
+    if current_user.role!=Role.ADMIN and not (current_user.role==Role.PATIENT and current_user.patient.id==patient.id):
+        abort(403)
+    field={'ktp':'foto_ktp','bpjs':'foto_bpjs'}.get(kind)
+    filename=getattr(patient,field,None) if field else None
+    if not filename or Path(filename).name!=filename:
+        abort(404)
+    extension=Path(filename).suffix.lower()
+    if extension not in ('.jpg','.png'):
+        abort(404)
+    response=send_file(Path(current_app.instance_path)/'private_uploads'/filename,
+        mimetype='image/png' if extension=='.png' else 'image/jpeg',max_age=0)
+    response.headers['Cache-Control']='private, no-store'
+    response.headers['Content-Security-Policy']="default-src 'none'; sandbox"
+    return response
 
 
 @web.route('/appointments/new',methods=['GET','POST'])
@@ -226,8 +247,13 @@ def records():
 
 
 @web.get('/admin/referrals')
-@roles(Role.ADMIN)
+@roles(Role.ADMIN,Role.DOCTOR)
 def referrals():
+    if current_user.role==Role.DOCTOR:
+        pending=Visit.query.join(Appointment).join(Referral).filter(
+            Appointment.doctor_id==current_user.doctor.id, Referral.status=='Menunggu TTD'
+        ).order_by(Referral.created_at.asc()).all()
+        return render_template('referrals.html',doctor_pending=pending)
     q=request.args.get('q','').strip()
     requests=ReferralRequest.query.filter(ReferralRequest.status=='PENDING').join(Visit).join(Appointment).join(Patient,Appointment.patient_id==Patient.id).join(User,Patient.user_id==User.id)
     issued=Visit.query.join(Appointment).join(Referral)
@@ -240,7 +266,21 @@ def referrals():
         page=request.args.get('page',1,type=int),per_page=12,error_out=False)
     legacy_visits=Visit.query.join(Appointment).filter(Visit.examination.has(),
         ~Visit.referral.has(),~Visit.referral_request.has()).order_by(Appointment.date.desc(),Visit.id.desc()).all()
-    return render_template('referrals.html',page=page,requests=requests.order_by(ReferralRequest.created_at.asc()).all(),legacy_visits=legacy_visits)
+    return render_template('referrals.html',page=page,requests=requests.order_by(ReferralRequest.created_at.asc()).all(),legacy_visits=legacy_visits,doctor_pending=[])
+
+
+@web.post('/doctor/referrals/<int:visit_id>/sign')
+@roles(Role.DOCTOR)
+def sign_referral(visit_id):
+    v=db.get_or_404(Visit,visit_id)
+    if v.doctor.user_id!=current_user.id: abort(403)
+    def sign():
+        if not v.referral or v.referral.status!='Menunggu TTD':
+            raise ValueError('Surat rujukan tidak tersedia untuk ditandatangani.')
+        v.referral.status='Selesai'
+        v.referral.signed_at=datetime.now()
+        return 'Surat rujukan berhasil ditandatangani.'
+    return mutate(sign,url_for('web.referrals'))
 
 
 @web.post('/visits/<int:visit_id>/referral-request')
@@ -430,7 +470,7 @@ def read_notifications():
 @web.route('/admin/patients',methods=['GET','POST'])
 @roles(Role.ADMIN)
 def patients():
-    if request.method=='POST': return mutate(lambda:PatientService.register(request.form),url_for('web.patients'))
+    if request.method=='POST': return mutate(lambda:PatientService.register(request.form,request.files),url_for('web.patients'))
     query=Patient.query.join(User)
     q=request.args.get('q','').strip()
     if q: query=query.filter(or_(User.name.contains(q),Patient.nik.contains(q),Patient.mr.contains(q),User.phone.contains(q)))

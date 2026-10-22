@@ -1,6 +1,6 @@
 <div class="print-toolbar print-hidden">
-  <button class="button" data-print><i class="fa fa-print" aria-hidden="true"></i> Cetak / Simpan PDF</button>
-  <a class="button secondary" href="{{ url_for('web.referrals') }}">Kembali ke surat rujukan</a>
+  {% if role=='admin' %}{% if v.referral.status=='Selesai' %}<button class="button" data-print><i class="fa fa-print" aria-hidden="true"></i> Cetak / Simpan PDF</button>{% else %}<span class="badge">Menunggu Dokter</span>{% endif %}{% endif %}
+  {% if role in ['admin','doctor'] %}<a class="button secondary" href="{{ url_for('web.referrals') }}">Kembali ke surat rujukan</a>{% endif %}
 </div>
 <article class="print-sheet referral-letter">
   <header class="referral-letterhead">
@@ -45,16 +45,25 @@
     {% elif 'Alia' in doctor_name %}{% set doctor_sip = '445/002/DINKES-SMD/2026' %}
     {% else %}{% set doctor_sip = '445/999/DINKES-SMD/2026' %}{% endif %}
   {% endif %}
-  <div class="referral-signature-area">
+  {% if v.referral.status=='Selesai' %}<div class="referral-signature-area">
     <div class="referral-qr-block">
       <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&amp;data=Dokumen+Valid+Klinik+Medika+Husada" alt="QR Code Validasi" crossorigin="anonymous">
       <p>Dokumen ini tervalidasi<br>secara elektronik</p>
     </div>
     <div class="referral-signature">
       <p>Hormat Kami,<br>Dokter Pemeriksa</p>
-      <div class="referral-signature-space"></div>
-      <strong>{{ doctor_name }}</strong>
-      <p class="referral-sip">SIP: {{ doctor_sip }}</p>
+      <div class="referral-signature-space signature-script">
+        {% if 'Fakih' in doctor_name %}
+        <svg viewBox="0 0 160 100" class="signature-svg" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-label="Coretan tanda tangan dr. Fakih" role="img"><path d="M45,45 L65,10 L55,95 M55,75 C65,40 75,45 80,65 C85,45 95,50 100,65 C110,45 120,70 145,65" /></svg>
+        {% elif 'Alia' in doctor_name %}
+        <svg viewBox="0 0 160 100" class="signature-svg" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-label="Coretan tanda tangan dr. Alia" role="img"><path d="M45,80 L65,15 L75,75 M25,50 L120,45 M75,70 C85,45 95,75 105,55 C110,45 120,70 135,50" /></svg>
+        {% else %}
+        <svg viewBox="0 0 160 100" class="signature-svg" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-label="Coretan tanda tangan dokter" role="img"><path d="M30,65 C45,25 60,20 65,55 C75,85 85,75 95,55 C105,30 115,30 120,55 C125,80 140,75 150,65" /></svg>
+        {% endif %}
+      </div>
+      <div class="signature-name text-center"><strong class="whitespace-nowrap">{{ doctor_name }}</strong></div>
+      <p class="referral-sip whitespace-nowrap">SIP: {{ doctor_sip }}</p>
     </div>
   </div>
+  {% else %}<p class="referral-signature-area"><span class="badge">Menunggu Tanda Tangan Dokter</span></p>{% endif %}
 </article>

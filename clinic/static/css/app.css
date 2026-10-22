@@ -203,6 +203,18 @@ textarea{resize:vertical}
 .form-grid.one{grid-template-columns:1fr}
 .checkbox{display:flex;gap:9px;align-items:center;font-size:11px;margin:16px 0}
 .checkbox input{width:17px;height:17px;min-height:17px;padding:0;margin:0;accent-color:var(--primary)}
+.identity-upload-section{margin:22px 0;padding:18px;border:1px solid #e4ecee;border-radius:12px;background:linear-gradient(145deg,#fbfefe,#f7fafb)}
+.identity-upload-section h2{margin:0 0 8px}
+.identity-upload-grid,.identity-document-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.identity-upload-field{display:block;margin:0;padding:14px;border:1px solid #e2e9eb;border-radius:10px;background:#fff;color:#36454d;font-size:12px}
+.identity-upload-field>span{display:block;font-weight:700}
+.identity-upload-field small{display:block;margin-top:7px;color:var(--muted);font-size:10px;font-weight:400}
+.identity-upload-field input[type=file]{box-sizing:border-box;min-height:44px;padding:6px;background:#f8fbfc;border:1px dashed #b8c9ce;border-radius:8px;font-size:11px}
+.identity-upload-field input[type=file]::file-selector-button{margin-right:10px;padding:8px 12px;border:0;border-radius:6px;background:#e8f7f7;color:#087f83;font-weight:700;cursor:pointer}
+.identity-document-card{min-width:0;padding:14px;border:1px solid #e4ecee;border-radius:10px;background:#fff}
+.identity-document-card h3,.identity-document-card h4{margin:0 0 12px}
+.identity-preview{display:block;width:100%;height:210px;object-fit:contain;margin:0 0 12px;border:1px solid #edf1f2;border-radius:8px;background:#f7f9fa}
+.document-missing{display:grid;place-items:center;min-height:150px;padding:18px;border:1px dashed #d8e1e4;border-radius:8px;background:#f8fafb;color:var(--muted);text-align:center}
 .filter-bar{display:flex;gap:11px;align-items:flex-end;flex-wrap:wrap;margin-bottom:20px}
 .filter-bar>input,.filter-bar>select{flex:1;min-width:140px;margin:0;width:auto}
 .filter-bar label{margin:0;flex:1;min-width:160px}
@@ -347,6 +359,54 @@ footer small{font-weight:400;font-size:9px}
 .notification-panel h3{margin:0}
 dialog{border:0;border-radius:.55rem;padding:26px;width:min(450px,calc(100vw - 30px));box-shadow:0 20px 45px rgba(31,42,47,.3);color:var(--text)}
 dialog::backdrop{background:rgba(31,42,47,.48)}
+.patient-detail-modal{box-sizing:border-box;width:min(900px,calc(100vw - 32px));max-height:min(88vh,900px);overflow-y:auto;padding:26px;border:1px solid #e5edef;border-radius:16px;background:#fff}
+.patient-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}
+.patient-modal-head h2{margin:3px 0 0}
+.patient-info-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 18px;margin:0 0 20px}
+.patient-info-grid>div{padding:12px 0;border-bottom:1px solid #edf1f2}
+.patient-info-grid dt{margin-bottom:5px;color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase}
+.patient-info-grid dd{margin:0;color:var(--text);font-size:12px;overflow-wrap:anywhere}
+.patient-detail-modal .identity-document-grid{margin-top:14px}
+.user-access-entry{padding:14px 0;border-bottom:1px solid #edf1f2}
+.user-access-entry:last-child{border-bottom:0}
+.user-access-row{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));align-items:center;gap:16px;padding:8px;border-bottom:1px solid #f0f3f4;transition:background-color .2s ease}
+.user-access-row:hover{background:#f8fafb}
+.user-row-name,.user-row-email{grid-column:span 4;min-width:0}
+.user-row-name strong,.user-row-email span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.user-row-name strong{color:var(--text);font-size:13px}
+.user-row-email{color:var(--muted);font-size:12px}
+.user-row-role{grid-column:span 2;min-width:0}
+.user-row-role .badge{white-space:nowrap}
+.user-row-action{grid-column:span 2;display:flex;justify-content:flex-end;align-items:center;min-width:0}
+.user-detail-trigger{display:inline-flex;align-items:center;justify-content:center;gap:7px;flex-shrink:0;padding:7px 12px;border:1px solid #bfe5e5;border-radius:8px;background:#eefafa;color:#087f83;font-size:12px;font-weight:600;line-height:1.4;cursor:pointer;transition:background-color .2s ease,color .2s ease,box-shadow .2s ease}
+.user-detail-trigger svg{width:16px;height:16px}
+.user-detail-trigger:hover,.user-detail-trigger:focus{background:#d8f3f2;box-shadow:0 0 0 3px rgba(8,127,131,.12)}
+.user-access-edit{margin:10px 0 0 12px;color:var(--muted);font-size:11px}
+.user-access-edit>summary{display:inline-block;padding:5px 0;cursor:pointer}
+.user-access-edit form{max-width:520px;padding:14px 0}
+.user-detail-modal{box-sizing:border-box;width:min(672px,calc(100vw - 30px));max-height:88vh;overflow:auto;padding:24px;background:#fff;border:1px solid #e5edef;border-radius:12px;color:var(--text);box-shadow:0 18px 55px rgba(20,38,47,.25)}
+.user-detail-header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px}
+.user-detail-header h2{margin:4px 0 0}
+.user-detail-close{display:grid;place-items:center;width:34px;height:34px;border:1px solid #e1e8ea;border-radius:50%;background:#fff;color:#59656c;font-size:22px;cursor:pointer}
+.user-detail-section{margin-top:16px;padding:16px;border:1px solid #edf1f2;border-radius:10px;background:#fff}
+.user-detail-section h3{margin:0 0 12px;font-size:14px}
+.user-detail-section h4{margin:16px 0 10px;font-size:12px}
+.user-detail-grid{display:grid;grid-template-columns:minmax(145px,.65fr) minmax(0,1.35fr);gap:0;margin:0}
+.user-detail-grid dt,.user-detail-grid dd{margin:0;padding:9px 2px;border-bottom:1px solid #f0f3f4;font-size:11px;overflow-wrap:anywhere}
+.user-detail-grid dt{color:var(--muted);font-weight:700}
+.user-detail-grid dd{color:var(--text)}
+.user-detail-grid dt:last-of-type,.user-detail-grid dd:last-of-type{border-bottom:0}
+.patient-status-wrap{margin-top:10px}
+.patient-status-badge{display:inline-flex;align-items:center;padding:5px 11px;border:1px solid;border-radius:999px;font-size:11px;font-weight:700;line-height:1.5}
+.patient-status-badge.bpjs{border-color:#bbebcc;background:#eaf9ef;color:#18753a}
+.patient-status-badge.general{border-color:#e1e5e8;background:#f2f4f5;color:#59636b}
+.password-masked{color:#6b7780;font-family:monospace}
+.user-document-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.user-document-grid article{min-width:0;padding:11px;border:1px solid #e8edef;border-radius:9px;background:#fafcfc}
+.user-document-grid h5{margin:0 0 9px;font-size:11px}
+.user-document-preview{display:block;width:100%;height:170px;object-fit:contain;border:1px solid #edf1f2;border-radius:7px;background:#fff}
+.user-document-empty{display:grid;place-items:center;height:170px;margin:0;padding:12px;border:1px dashed #d9e2e4;border-radius:7px;background:#fff;color:var(--muted);font-size:11px;text-align:center}
+.user-detail-footer{display:flex;justify-content:flex-end;margin:16px 0 0}
 .receipt-dialog{width:min(850px,calc(100vw - 22px));height:85vh;padding:18px}
 .receipt-dialog iframe{border:0;width:100%;height:calc(100% - 55px)}
 .receipt-dialog .section-head{margin-bottom:7px}
@@ -376,8 +436,12 @@ dialog::backdrop{background:rgba(31,42,47,.48)}
 .referral-qr-block p{margin:0;color:#6b7280;font-size:10px;font-style:italic;text-align:center}
 .referral-signature{width:250px;margin:0;text-align:center}
 .referral-signature p{margin:0}
-.referral-signature-space{height:76px}
-.referral-signature>strong{display:inline-block;min-width:190px;border-bottom:1px solid #000;padding-bottom:2px;text-decoration:underline;text-underline-offset:2px}
+.referral-signature-space{height:80px;margin-bottom:4px}
+.referral-signature-space.signature-script{display:flex;align-items:center;justify-content:center}
+.signature-svg{height:100%;width:128px;color:#0f172a}
+.signature-name{display:inline-block;min-width:250px;width:max-content;max-width:none;margin:0 auto 4px;padding:0 0 4px;border-bottom:1px solid #000;text-align:center;white-space:nowrap}
+.referral-signature .whitespace-nowrap{white-space:nowrap}
+.referral-signature>strong{display:inline-block;white-space:nowrap}
 .referral-signature .referral-sip{margin-top:5px;font-size:10pt}
 .referral-body{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;min-height:310px}
 .referral-copy{flex:1;min-width:0}
@@ -474,6 +538,10 @@ dialog::backdrop{background:rgba(31,42,47,.48)}
   .card{padding:17px;margin-bottom:17px}.grid,.stats{gap:11px;margin-bottom:17px}
   .stat{padding:15px}.stat>strong{font-size:25px}.stat>strong.smaller{font-size:16px}.stat>span,.stat small{font-size:8px}
   .form-grid,.form-grid.three,.grid.three{grid-template-columns:1fr}
+  .identity-upload-grid,.identity-document-grid,.patient-info-grid{grid-template-columns:1fr}
+  .patient-detail-modal{padding:18px}
+  .user-document-grid{grid-template-columns:1fr}.user-detail-modal{padding:16px}.user-detail-section{padding:12px}
+  .user-access-row{gap:8px}.user-row-name,.user-row-email{grid-column:span 6}.user-row-role,.user-row-action{grid-column:span 6}.user-row-action{justify-content:flex-start}
   .appointment-grid{grid-template-columns:1fr}
   .timeline{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
   .timeline li{display:flex;align-items:center;gap:7px}.timeline li span{flex-shrink:0;margin:0;width:25px;height:25px}
@@ -496,7 +564,8 @@ dialog::backdrop{background:rgba(31,42,47,.48)}
   .referral-qr-block img{width:64px;height:64px}
   .referral-qr-block p{font-size:8pt}
   .referral-signature{width:min(220px,calc(100vw - 190px))}
-  .referral-signature>strong{min-width:0;max-width:100%;overflow-wrap:anywhere}
+  .signature-name{min-width:250px;max-width:none}
+  .referral-signature>strong{min-width:0;max-width:none;overflow-wrap:normal}
   dl{grid-template-columns:1fr;gap:4px}dd{margin-bottom:11px}
   .toasts{right:15px;bottom:15px}.notification-panel{right:15px}.print-toolbar{justify-content:flex-start;flex-wrap:wrap}
 }
