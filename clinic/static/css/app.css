@@ -275,8 +275,9 @@ dd{margin:0;overflow-wrap:anywhere}
 .hero-note small{margin-top:3px}
 .doctor-card{display:flex;gap:20px;align-items:flex-start;border-top:3px solid var(--primary)}
 .doctor-avatar{display:grid;place-items:center;width:68px;height:76px;flex-shrink:0;border-radius:.45rem;background:var(--primary-soft);color:var(--primary-dark);font-size:20px;font-weight:700}
-.doctor-photo-frame{position:relative;isolation:isolate;overflow:hidden;width:68px;height:76px;flex:0 0 68px;border:1px solid #e1e8ea;border-radius:.45rem;background:#f1f4f5}
+.doctor-photo-frame{position:relative;isolation:isolate;overflow:hidden;width:64px;height:64px;flex:0 0 64px;border:1px solid #e1e8ea;border-radius:.5rem;background:#f1f4f5}
 .doctor-photo-frame img[class~="absolute"]{position:absolute;inset:0;display:block;box-sizing:border-box;width:100%;height:100%;background:var(--primary-soft)}
+.doctor-photo-fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--primary-soft);color:var(--primary-dark);font-size:18px;font-weight:700}
 .doctor-card:nth-child(2) .doctor-avatar{background:#f0eafa;color:var(--purple)}
 .doctor-card h3{font-size:16px}
 .doctor-card .eyebrow{font-size:8px}
@@ -497,7 +498,7 @@ dialog::backdrop{background:rgba(31,42,47,.48)}
   .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
   .examination-summary-layout{grid-template-columns:minmax(0,1fr) 132px;gap:16px}
   .hero{gap:30px}.hero h1{font-size:40px}
-  .public-nav nav{gap:16px}.doctor-card{gap:14px}.doctor-avatar{width:52px;height:62px;font-size:17px}.doctor-photo-frame{width:52px;height:62px;flex-basis:52px}
+  .public-nav nav{gap:16px}.doctor-card{gap:14px}.doctor-avatar{width:52px;height:62px;font-size:17px}.doctor-photo-frame{width:64px;height:64px;flex-basis:64px}
   .clinic-navbar .navbar-form{display:none}
 }
 @media(max-width:850px){
