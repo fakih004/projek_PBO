@@ -76,4 +76,4 @@ def seed_data(demo=True):
 if __name__=='__main__':
     app=create_app()
     with app.app_context(): seed_data()
-    print('Seed selesai. Akun demo  tersedia; lihat README.md. Jalankan python app.py.')
+    print('Seed selesai. Akun demo  tersedia; lihat README.md. Jalankan python app.py.')  
