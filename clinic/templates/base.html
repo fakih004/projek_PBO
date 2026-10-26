@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="{{ url_for('static',filename='hospital/assets/vendor/bootstrap/css/bootstrap.min.css') }}">
   <link rel="stylesheet" href="{{ url_for('static',filename='hospital/assets/vendor/font-awesome/css/font-awesome.min.css') }}">
   <link rel="stylesheet" href="{{ url_for('static',filename='hospital/assets/css/main.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static',filename='css/app.css',v='admin-search-polish-20261015') }}">
+  <link rel="stylesheet" href="{{ url_for('static',filename='css/app.css',v='test-clock-20261026') }}">
   <script src="{{ url_for('static',filename='js/app.js') }}" defer></script>
 </head>
 <body data-theme="light" class="font-nunito{% if current_user.is_authenticated %} workspace{% endif %}{% if embedded|default(false) %} embedded{% endif %}">
@@ -89,6 +89,7 @@
   <main class="public-main">
 {% endif %}
 
+{% if config.get('TEST_CLOCK') %}<div class="test-clock-notice">Mode pengujian aktif · waktu aplikasi disimulasikan mulai pukul 00.00</div>{% endif %}
 {% block content %}{% endblock %}
 
 {% if current_user.is_authenticated %}

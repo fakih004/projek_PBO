@@ -10,6 +10,7 @@ from sqlalchemy.exc import IntegrityError, OperationalError
 from . import db
 from .models import *
 from .services import *
+from .clock import now as clock_now, today as clock_today
 
 web=Blueprint('web',__name__)
 
@@ -72,7 +73,7 @@ def scoped_visits():
 @web.get('/')
 def index():
     doctors=Doctor.query.join(User).filter(User.active.is_(True)).all()
-    today=date.today()
+    today=clock_today()
     return render_template('landing.html',doctors=doctors,today=today,
         availability={d.id:AppointmentService.slots(d.id,today) for d in doctors})
 
@@ -126,7 +127,7 @@ def role_dashboard(role):
 
 
 def dashboard_data():
-    today=date.today()
+    today=clock_today()
     doctor_schedule_by_day={}
     if current_user.role==Role.DOCTOR:
         # Batasi jadwal dashboard ke profil dokter pada sesi yang sedang aktif.
@@ -195,7 +196,7 @@ def booking():
         patient=current_user.patient if current_user.role==Role.PATIENT else db.get_or_404(Patient,request.form.get('patient_id',type=int))
         return mutate(lambda:AppointmentService.book(patient,request.form),url_for('web.appointments'))
     return render_template('booking.html',appointment=None,doctors=Doctor.query.join(User).filter(User.active.is_(True)).all(),
-        patients=Patient.query.all() if current_user.role==Role.ADMIN else [],today=date.today())
+        patients=Patient.query.all() if current_user.role==Role.ADMIN else [],today=clock_today())
 
 
 @web.get('/api/slots')
@@ -228,7 +229,7 @@ def appointments():
 def reschedule(aid):
     a=appointment_access(aid)
     if request.method=='POST': return mutate(lambda:AppointmentService.book(a.patient,request.form,a),url_for('web.appointments'))
-    return render_template('booking.html',appointment=a,doctors=Doctor.query.join(User).filter(User.active.is_(True)).all(),patients=[],today=date.today())
+    return render_template('booking.html',appointment=a,doctors=Doctor.query.join(User).filter(User.active.is_(True)).all(),patients=[],today=clock_today())
 
 
 @web.post('/appointments/<int:aid>/<action>')
@@ -278,7 +279,7 @@ def sign_referral(visit_id):
         if not v.referral or v.referral.status!='Menunggu TTD':
             raise ValueError('Surat rujukan tidak tersedia untuk ditandatangani.')
         v.referral.status='Selesai'
-        v.referral.signed_at=datetime.now()
+        v.referral.signed_at=clock_now()
         return 'Surat rujukan berhasil ditandatangani.'
     return mutate(sign,url_for('web.referrals'))
 
@@ -309,13 +310,28 @@ def issue_referral(request_id):
         hospital=required(request.form,'hospital',160)
         notes=str(request.form.get('notes',''))[:4000]
         v=referral_request.visit
-        db.session.add(Referral(visit=v,number=f'RJK-{date.today():%Y%m%d}-{v.id:05}',
+        db.session.add(Referral(visit=v,number=f'RJK-{clock_today():%Y%m%d}-{v.id:05}',
             specialist=specialist,hospital=hospital,reason=referral_request.reason,notes=notes))
         referral_request.status='ISSUED'
         referral_request.admin=current_user
-        referral_request.completed_at=datetime.now()
+        referral_request.completed_at=clock_now()
         return 'Surat rujukan berhasil dibuat.'
     return mutate(issue,url_for('web.referrals'))
+
+
+@web.post('/admin/referrals/<int:request_id>/reject')
+@roles(Role.ADMIN)
+def reject_referral_request(request_id):
+    referral_request=db.get_or_404(ReferralRequest,request_id)
+    def reject():
+        if referral_request.status!='PENDING' or referral_request.visit.referral:
+            raise ValueError('Permintaan ini sudah diproses.')
+        referral_request.status='REJECTED'
+        referral_request.admin=current_user
+        referral_request.completed_at=clock_now()
+        referral_request.rejection_reason=required(request.form,'rejection_reason',4000)
+        return 'Permintaan surat rujukan ditolak.'
+    return mutate(reject,url_for('web.referrals'))
 
 
 @web.post('/admin/referrals/archive')
@@ -512,7 +528,7 @@ def medicines():
                 raise ValueError('Penambahan stok harus diajukan melalui pembelian pemasok dan disetujui admin.')
             if delta: med.change_stock(delta,required(request.form,'reason',200),current_user.id)
         return mutate(save,url_for('web.medicines'))
-    return render_template('medicines.html',medicines=Medicine.query.order_by(Medicine.name).all(),movements=StockMovement.query.order_by(StockMovement.id.desc()).limit(40).all(),today=date.today())
+    return render_template('medicines.html',medicines=Medicine.query.order_by(Medicine.name).all(),movements=StockMovement.query.order_by(StockMovement.id.desc()).limit(40).all(),today=clock_today())
 
 
 @web.route('/supplier-purchases',methods=['GET','POST'])
@@ -523,12 +539,29 @@ def supplier_purchases():
     if request.method=='POST':
         if role!=Role.PHARMACIST: abort(403)
         def create_request():
-            medicine=db.get_or_404(Medicine,request.form.get('medicine_id',type=int))
-            purchase=SupplierPurchase(supplier=required(request.form,'supplier',160),medicine=medicine,
-                pharmacist_id=current_user.id,requested_quantity=number(request.form,'quantity',1,1000000,True),
-                estimated_unit_cost=number(request.form,'estimated_unit_cost',1,100000000,True),
+            ids=request.form.getlist('medicine_id')
+            quantities=request.form.getlist('quantity')
+            costs=request.form.getlist('estimated_unit_cost')
+            if not ids or len(ids)!=len(quantities) or len(ids)!=len(costs) or len(ids)>50:
+                raise ValueError('Tambahkan minimal satu obat dengan jumlah dan harga yang lengkap (maks. 50 obat).')
+            parsed=[]; seen=set()
+            for raw_id,raw_quantity,raw_cost in zip(ids,quantities,costs):
+                try: medicine_id=int(raw_id)
+                except (ValueError,TypeError): raise ValueError('Pilih obat yang valid untuk setiap baris.')
+                if medicine_id in seen: raise ValueError('Obat yang sama tidak boleh dimasukkan lebih dari sekali; gabungkan jumlahnya dalam satu baris.')
+                seen.add(medicine_id)
+                medicine=db.get_or_404(Medicine,medicine_id)
+                quantity=number({'quantity':raw_quantity},'quantity',1,1000000,True)
+                cost=number({'estimated_unit_cost':raw_cost},'estimated_unit_cost',1,100000000,True)
+                parsed.append((medicine,quantity,cost))
+            first_medicine,first_quantity,first_cost=parsed[0]
+            purchase=SupplierPurchase(supplier=required(request.form,'supplier',160),medicine=first_medicine,
+                pharmacist_id=current_user.id,requested_quantity=first_quantity,estimated_unit_cost=first_cost,
                 reason=required(request.form,'reason',400))
             db.session.add(purchase)
+            db.session.flush()
+            for medicine,quantity,cost in parsed:
+                db.session.add(SupplierPurchaseItem(purchase=purchase,medicine=medicine,requested_quantity=quantity,estimated_unit_cost=cost))
         return mutate(create_request,url_for('web.supplier_purchases'))
     query=SupplierPurchase.query.order_by(SupplierPurchase.created_at.desc(),SupplierPurchase.id.desc())
     if role==Role.PHARMACIST: query=query.filter_by(pharmacist_id=current_user.id)
@@ -548,14 +581,20 @@ def supplier_purchase_action(purchase_id,action):
 
         if action=='approve_purchase':
             if purchase.status!=SupplierPurchaseStatus.PENDING_PURCHASE_APPROVAL: raise ValueError('Pengajuan pembelian tidak sedang menunggu keputusan.')
-            received_at=datetime.now()
+            received_at=clock_now()
             if not (purchase.supplier_invoice or '').strip():
                 purchase.supplier_invoice=generate_supplier_invoice_number(received_at)
-            quantity=purchase.requested_quantity
-            amount=purchase.requested_total
-            movement_reason=f'Pembelian pemasok {purchase.supplier}; pengajuan #{purchase.id}'[:200]
-            purchase.medicine.change_stock(quantity,movement_reason,current_user.id)
-            purchase.received_quantity=quantity
+            items=purchase.items or [purchase]
+            amount=0
+            for item in items:
+                quantity=item.requested_quantity
+                unit_cost=item.estimated_unit_cost
+                amount+=quantity*unit_cost
+                movement_reason=f'Pembelian pemasok {purchase.supplier}; pengajuan #{purchase.id}'[:200]
+                item.medicine.change_stock(quantity,movement_reason,current_user.id)
+                item.received_quantity=quantity
+                item.actual_unit_cost=unit_cost
+            purchase.received_quantity=purchase.requested_quantity
             purchase.actual_unit_cost=purchase.estimated_unit_cost
             purchase.received_at=received_at
             purchase.status=SupplierPurchaseStatus.PURCHASE_COMPLETED
@@ -567,12 +606,12 @@ def supplier_purchase_action(purchase_id,action):
                 db.session.add(expense)
             else:
                 expense.supplier=purchase.supplier; expense.amount=amount
-            purchase.purchase_decided_by=current_user.id; purchase.purchase_decided_at=datetime.now()
+            purchase.purchase_decided_by=current_user.id; purchase.purchase_decided_at=clock_now()
             purchase.purchase_decision_note=request.form.get('note','')[:400]
         elif action=='reject_purchase':
             if purchase.status!=SupplierPurchaseStatus.PENDING_PURCHASE_APPROVAL: raise ValueError('Pengajuan pembelian tidak sedang menunggu keputusan.')
             purchase.status=SupplierPurchaseStatus.PURCHASE_REJECTED
-            purchase.purchase_decided_by=current_user.id; purchase.purchase_decided_at=datetime.now()
+            purchase.purchase_decided_by=current_user.id; purchase.purchase_decided_at=clock_now()
             purchase.purchase_decision_note=required(request.form,'note',400)
     return mutate(update_purchase,url_for('web.supplier_purchases'))
 
@@ -648,7 +687,7 @@ def users():
 @web.get('/admin/reports')
 @roles(Role.ADMIN)
 def reports():
-    today=date.today()
+    today=clock_today()
     try:
         start=date.fromisoformat(request.args.get('start') or today.replace(day=1).isoformat())
         end=date.fromisoformat(request.args.get('end') or today.isoformat())
@@ -699,7 +738,7 @@ def reports():
 @web.get('/api/admin/finance')
 @roles(Role.ADMIN)
 def finance_api():
-    today=date.today()
+    today=clock_today()
     try:
         start=date.fromisoformat(request.args.get('start') or today.replace(day=1).isoformat())
         end=date.fromisoformat(request.args.get('end') or today.isoformat())

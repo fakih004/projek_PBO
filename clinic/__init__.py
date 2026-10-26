@@ -37,6 +37,7 @@ def create_app(config=None):
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
         SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE='Lax',
         PERMANENT_SESSION_LIFETIME=timedelta(hours=8), MAX_CONTENT_LENGTH=5*1024*1024,
+        TEST_CLOCK=False,
     )
     if config:
         app.config.update(config)
@@ -78,6 +79,9 @@ def create_app(config=None):
         if 'signed_at' not in {column['name'] for column in inspect(db.engine).get_columns('referral')}:
             with db.engine.begin() as connection:
                 connection.execute(text('ALTER TABLE referral ADD COLUMN signed_at DATETIME'))
+        if 'rejection_reason' not in {column['name'] for column in inspect(db.engine).get_columns('referral_request')}:
+            with db.engine.begin() as connection:
+                connection.execute(text("ALTER TABLE referral_request ADD COLUMN rejection_reason TEXT NOT NULL DEFAULT ''"))
         patient_columns={column['name'] for column in inspect(db.engine).get_columns('patient')}
         with db.engine.begin() as connection:
             if 'tempat_lahir' not in patient_columns:

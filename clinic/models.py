@@ -1,4 +1,5 @@
 from datetime import datetime
+from .clock import now as clock_now
 from enum import Enum
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -70,7 +71,7 @@ class User(UserMixin, db.Model):
     sip=db.Column(db.String(50), unique=True)
     active=db.Column(db.Boolean, default=True, nullable=False)
     phone=db.Column(db.String(24), default='')
-    created_at=db.Column(db.DateTime, default=datetime.now)
+    created_at=db.Column(db.DateTime, default=clock_now)
     patient=db.relationship('Patient', backref='user', uselist=False)
     doctor=db.relationship('Doctor', backref='user', uselist=False)
 
@@ -136,7 +137,7 @@ class Appointment(db.Model):
     status=db.Column(db.Enum(AppointmentStatus), default=AppointmentStatus.PENDING, nullable=False)
     # Dilepas saat pembatalan; NULL memungkinkan beberapa riwayat pemesanan pada slot yang sama.
     slot_key=db.Column(db.String(80), unique=True)
-    created_at=db.Column(db.DateTime, default=datetime.now)
+    created_at=db.Column(db.DateTime, default=clock_now)
     patient=db.relationship(Patient, backref='appointments')
     doctor=db.relationship(Doctor)
     visit=db.relationship('Visit', backref='appointment', uselist=False)
@@ -156,7 +157,7 @@ class Visit(db.Model):
     queue=db.Column(db.String(24), nullable=False)
     status=db.Column(db.Enum(VisitStatus), default=VisitStatus.WAITING_NURSE, nullable=False)
     queue_state=db.Column(db.String(24), default='WAITING')
-    updated_at=db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+    updated_at=db.Column(db.DateTime, default=clock_now, onupdate=clock_now)
     nursing=db.relationship('NursingAssessment', backref='visit', uselist=False)
     examination=db.relationship('DoctorExamination', backref='visit', uselist=False)
     prescription=db.relationship('Prescription', backref='visit', uselist=False)
@@ -237,7 +238,7 @@ class StockMovement(db.Model):
     reason=db.Column(db.String(200), nullable=False)
     actor_id=db.Column(db.ForeignKey('user.id'), nullable=False)
     visit_id=db.Column(db.ForeignKey('visit.id'))
-    created_at=db.Column(db.DateTime, default=datetime.now)
+    created_at=db.Column(db.DateTime, default=clock_now)
     medicine=db.relationship('Medicine')
 
 
@@ -250,7 +251,7 @@ class SupplierPurchase(db.Model):
     estimated_unit_cost=db.Column(db.Integer, nullable=False)
     reason=db.Column(db.String(400), nullable=False)
     status=db.Column(db.Enum(SupplierPurchaseStatus), default=SupplierPurchaseStatus.PENDING_PURCHASE_APPROVAL, nullable=False)
-    created_at=db.Column(db.DateTime, default=datetime.now, nullable=False)
+    created_at=db.Column(db.DateTime, default=clock_now, nullable=False)
     purchase_decided_by=db.Column(db.ForeignKey('user.id'))
     purchase_decided_at=db.Column(db.DateTime)
     purchase_decision_note=db.Column(db.String(400), default='')
@@ -266,12 +267,25 @@ class SupplierPurchase(db.Model):
     purchase_approver=db.relationship('User', foreign_keys=[purchase_decided_by])
     payment_approver=db.relationship('User', foreign_keys=[payment_decided_by])
     expense_invoice=db.relationship('ExpenseInvoice', backref='purchase', uselist=False, cascade='all, delete-orphan')
+    items=db.relationship('SupplierPurchaseItem', backref='purchase', cascade='all, delete-orphan', order_by='SupplierPurchaseItem.id')
 
     @property
-    def requested_total(self): return self.requested_quantity*self.estimated_unit_cost
+    def requested_total(self): return sum(item.requested_quantity*item.estimated_unit_cost for item in self.items) if self.items else self.requested_quantity*self.estimated_unit_cost
 
     @property
-    def payment_total(self): return (self.received_quantity or 0)*(self.actual_unit_cost or 0)
+    def payment_total(self): return sum((item.received_quantity or 0)*(item.actual_unit_cost or 0) for item in self.items) if self.items else (self.received_quantity or 0)*(self.actual_unit_cost or 0)
+
+
+class SupplierPurchaseItem(db.Model):
+    id=db.Column(db.Integer, primary_key=True)
+    purchase_id=db.Column(db.ForeignKey('supplier_purchase.id'), nullable=False, index=True)
+    medicine_id=db.Column(db.ForeignKey('medicine.id'), nullable=False)
+    requested_quantity=db.Column(db.Integer, nullable=False)
+    estimated_unit_cost=db.Column(db.Integer, nullable=False)
+    received_quantity=db.Column(db.Integer)
+    actual_unit_cost=db.Column(db.Integer)
+    medicine=db.relationship('Medicine')
+    __table_args__=(db.CheckConstraint('requested_quantity > 0'), db.CheckConstraint('estimated_unit_cost > 0'))
 
 
 class Prescription(db.Model):
@@ -326,7 +340,7 @@ class Payment(db.Model):
     amount=db.Column(db.Integer, nullable=False)
     method=db.Column(db.String(24), nullable=False)
     status=db.Column(db.Enum(PaymentStatus), nullable=False)
-    created_at=db.Column(db.DateTime, default=datetime.now)
+    created_at=db.Column(db.DateTime, default=clock_now)
 
 
 class ExpenseInvoice(db.Model):
@@ -336,7 +350,7 @@ class ExpenseInvoice(db.Model):
     number=db.Column(db.String(40), unique=True, nullable=False)
     supplier=db.Column(db.String(160), nullable=False)
     amount=db.Column(db.Integer, nullable=False)
-    created_at=db.Column(db.DateTime, default=datetime.now, nullable=False)
+    created_at=db.Column(db.DateTime, default=clock_now, nullable=False)
     __table_args__=(db.CheckConstraint('amount >= 0'),)
 
 
@@ -346,7 +360,7 @@ class Notification(db.Model):
     message=db.Column(db.String(400), nullable=False)
     read=db.Column(db.Boolean, default=False, nullable=False)
     unique_key=db.Column(db.String(100), unique=True)
-    created_at=db.Column(db.DateTime, default=datetime.now)
+    created_at=db.Column(db.DateTime, default=clock_now)
 
 
 class Referral(db.Model):
@@ -359,7 +373,7 @@ class Referral(db.Model):
     notes=db.Column(db.Text, default='')
     status=db.Column(db.String(24), default='Menunggu TTD', nullable=False)
     signed_at=db.Column(db.DateTime)
-    created_at=db.Column(db.DateTime, default=datetime.now)
+    created_at=db.Column(db.DateTime, default=clock_now)
 
 
 class ReferralRequest(db.Model):
@@ -370,7 +384,8 @@ class ReferralRequest(db.Model):
     reason=db.Column(db.Text, nullable=False)
     status=db.Column(db.String(24), default='PENDING', nullable=False)
     admin_id=db.Column(db.ForeignKey('user.id'))
-    created_at=db.Column(db.DateTime, default=datetime.now, nullable=False)
+    created_at=db.Column(db.DateTime, default=clock_now, nullable=False)
     completed_at=db.Column(db.DateTime)
+    rejection_reason=db.Column(db.Text, nullable=False, default='')
     visit=db.relationship('Visit', backref=db.backref('referral_request', uselist=False))
     admin=db.relationship('User')

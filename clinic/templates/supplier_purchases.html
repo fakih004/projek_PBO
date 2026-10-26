@@ -9,10 +9,14 @@
   <form method="post">
     {{ csrf() }}
     <div class="form-grid">
-      <label>Supplier *<input name="supplier" maxlength="160" required></label>
-      <label>Obat *<select name="medicine_id" required><option value="">Pilih obat</option>{% for medicine in medicines %}<option value="{{ medicine.id }}">{{ medicine.name }} · stok {{ medicine.stock }} {{ medicine.unit }}</option>{% endfor %}</select></label>
-      <label>Jumlah yang diajukan *<input name="quantity" type="number" min="1" max="1000000" required></label>
-      <label>Perkiraan harga beli per satuan (Rp) *<input name="estimated_unit_cost" type="number" min="1" max="100000000" required></label>
+      <label class="form-span-two">Supplier *<input name="supplier" maxlength="160" required></label>
+      <div class="form-span-two"><div id="purchase-items">
+        <div class="form-grid purchase-item-row">
+          <label>Obat *<select name="medicine_id" required><option value="">Pilih obat</option>{% for medicine in medicines %}<option value="{{ medicine.id }}">{{ medicine.name }} · stok {{ medicine.stock }} {{ medicine.unit }}</option>{% endfor %}</select></label>
+          <label>Jumlah yang diajukan *<input name="quantity" type="number" min="1" max="1000000" required></label>
+          <label class="form-span-two">Perkiraan harga beli per satuan (Rp) *<input name="estimated_unit_cost" type="number" min="1" max="100000000" required></label>
+        </div>
+      </div><button type="button" class="button secondary" id="add-purchase-item">＋ Tambah obat lain</button></div>
       <label class="form-span-two">Keperluan pembelian *<input name="reason" maxlength="400" required placeholder="Contoh: stok menipis untuk memenuhi resep"></label>
     </div>
     <button class="button">Kirim ke admin untuk persetujuan</button>
@@ -24,14 +28,14 @@
   <h2>{{ 'Semua pengajuan supplier' if current_user.role.value=='admin' else 'Riwayat pengajuan saya' }}</h2>
   {% for purchase in purchases %}
   <article class="supplier-purchase-item">
-    <div class="section-head"><div><span class="eyebrow">PENGAJUAN #{{ purchase.id }} · {{ purchase.created_at.strftime('%d/%m/%Y %H:%M') }}</span><h3>{{ purchase.medicine.name }}</h3></div><span class="badge {{ 'warning' if purchase.status.value in ['PENDING_PURCHASE_APPROVAL','PAYMENT_PENDING','PAYMENT_REJECTED'] else 'danger' if purchase.status.value=='PURCHASE_REJECTED' else '' }}">{{ labels[purchase.status.value] }}</span></div>
+    <div class="section-head"><div><span class="eyebrow">PENGAJUAN #{{ purchase.id }} · {{ purchase.created_at.strftime('%d/%m/%Y %H:%M') }}</span><h3>{{ purchase.items|length if purchase.items else 1 }} macam obat</h3></div><span class="badge {{ 'warning' if purchase.status.value in ['PENDING_PURCHASE_APPROVAL','PAYMENT_PENDING','PAYMENT_REJECTED'] else 'danger' if purchase.status.value=='PURCHASE_REJECTED' else '' }}">{{ labels[purchase.status.value] }}</span></div>
+    <div class="supplier-purchase-facts purchase-medicine-list">{% if purchase.items %}{% for item in purchase.items %}<div><small>{{ item.medicine.name }}</small><strong>{{ item.requested_quantity }} {{ item.medicine.unit }} · {{ (item.requested_quantity*item.estimated_unit_cost)|rupiah }}</strong></div>{% endfor %}{% else %}<div><small>{{ purchase.medicine.name }}</small><strong>{{ purchase.requested_quantity }} {{ purchase.medicine.unit }} · {{ purchase.requested_total|rupiah }}</strong></div>{% endif %}</div>
     <div class="supplier-purchase-facts">
       <div><small>SUPPLIER</small><strong>{{ purchase.supplier }}</strong></div>
       <div><small>APOTEKER</small><strong>{{ purchase.pharmacist.name }}</strong></div>
-      <div><small>JUMLAH DIAJUKAN</small><strong>{{ purchase.requested_quantity }} {{ purchase.medicine.unit }}</strong></div>
       <div><small>PERKIRAAN TOTAL</small><strong>{{ purchase.requested_total|rupiah }}</strong></div>
       <div><small>KEPERLUAN</small><strong>{{ purchase.reason }}</strong></div>
-      {% if purchase.received_at %}<div><small>STOK MASUK</small><strong>{{ purchase.received_quantity }} {{ purchase.medicine.unit }} · {{ purchase.received_at.strftime('%d/%m/%Y %H:%M') }}</strong></div><div><small>FAKTUR SUPPLIER</small><strong>{{ purchase.supplier_invoice or 'Tidak dicantumkan' }}</strong></div><div><small>PENGELUARAN TERCATAT</small><strong>{{ purchase.payment_total|rupiah }}</strong></div>{% endif %}
+      {% if purchase.received_at %}<div><small>STOK MASUK</small><strong>{{ purchase.received_at.strftime('%d/%m/%Y %H:%M') }}</strong></div><div><small>FAKTUR SUPPLIER</small><strong>{{ purchase.supplier_invoice or 'Tidak dicantumkan' }}</strong></div><div><small>PENGELUARAN TERCATAT</small><strong>{{ purchase.payment_total|rupiah }}</strong></div>{% endif %}
       {% if purchase.purchase_decision_note %}<div><small>CATATAN KEPUTUSAN PEMBELIAN</small><strong>{{ purchase.purchase_decision_note }}</strong></div>{% endif %}
       {% if purchase.payment_decision_note %}<div><small>CATATAN KEPUTUSAN PEMBAYARAN</small><strong>{{ purchase.payment_decision_note }}</strong></div>{% endif %}
       {% if purchase.status.value=='PAID' %}<div><small>PEMBAYARAN DISETUJUI</small><strong>{{ purchase.payment_approver.name }} · {{ purchase.payment_decided_at.strftime('%d/%m/%Y %H:%M') }}</strong></div>{% endif %}
@@ -45,4 +49,22 @@
   <p class="empty">{{ 'Belum ada pengajuan pembelian supplier.' if current_user.role.value=='admin' else 'Kamu belum mengajukan pembelian supplier.' }}</p>
   {% endfor %}
 </section>
+<script>
+(() => {
+  const list = document.getElementById('purchase-items');
+  const add = document.getElementById('add-purchase-item');
+  if (!list || !add) return;
+  add.addEventListener('click', () => {
+    if (list.children.length >= 50) return;
+    const row = list.firstElementChild.cloneNode(true);
+    row.querySelector('button')?.remove();
+    row.querySelectorAll('input').forEach(input => input.value = '');
+    row.querySelector('select').selectedIndex = 0;
+    const remove = document.createElement('button');
+    remove.type = 'button'; remove.className = 'button danger'; remove.textContent = 'Hapus obat ini';
+    remove.addEventListener('click', () => row.remove());
+    row.append(remove); list.append(row);
+  });
+})();
+</script>
 {% endblock %}

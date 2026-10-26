@@ -9,6 +9,7 @@ from sqlalchemy import select, update
 from sqlalchemy.dialects.sqlite import insert
 from . import db
 from .models import *
+from .clock import now as clock_now, today as clock_today
 
 LABELS={
     'WAITING_VERIFICATION':'Menunggu verifikasi ulang',
@@ -29,7 +30,7 @@ LABELS={
 
 def generate_supplier_invoice_number(created_at=None):
     """Menghasilkan nomor faktur pemasok untuk tanggal tertentu setelah memeriksa duplikasi."""
-    issued_at=created_at or datetime.now()
+    issued_at=created_at or clock_now()
     for _ in range(1000):
         number=f'INV-SUP-{issued_at:%Y%m%d}-{secrets.randbelow(1000):03d}'
         if not SupplierPurchase.query.filter_by(supplier_invoice=number).first():
@@ -62,7 +63,7 @@ class NotificationService:
     @staticmethod
     def reminders(user):
         if user.role != Role.PATIENT: return
-        now=datetime.now()
+        now=clock_now()
         for a in user.patient.appointments:
             if a.status not in (AppointmentStatus.PENDING, AppointmentStatus.RESCHEDULED, AppointmentStatus.VERIFIED): continue
             delta=datetime.combine(a.date, datetime.strptime(a.time,'%H:%M').time())-now
@@ -86,7 +87,7 @@ class AppointmentService:
             result=db.session.execute(update(Visit).where(Visit.id==a.visit.id,
                 Visit.status.in_([VisitStatus.WAITING_NURSE,VisitStatus.WAITING_VERIFICATION])).values(
                     status=VisitStatus.CANCELLED if target in (AppointmentStatus.CANCELLED,AppointmentStatus.REJECTED) else VisitStatus.WAITING_VERIFICATION,
-                    queue='—',queue_state='WAITING',updated_at=datetime.now()))
+                    queue='—',queue_state='WAITING',updated_at=clock_now()))
             if result.rowcount!=1: raise ValueError('Pemeriksaan sudah dimulai. Janji tidak dapat diubah.')
 
     @staticmethod
@@ -102,7 +103,7 @@ class AppointmentService:
         result=[]
         while start<end and len(result)<s.quota:
             time=start.strftime('%H:%M')
-            result.append({'time':time,'available':time not in occupied and start>datetime.now()})
+            result.append({'time':time,'available':time not in occupied and start>clock_now()})
             start+=timedelta(minutes=s.interval)
         return result
 
@@ -157,9 +158,9 @@ class AppointmentService:
 class WorkflowService:
     @staticmethod
     def transition(v, expected, target):
-        if v.appointment.date>date.today():
+        if v.appointment.date>clock_today():
             raise ValueError('Pemeriksaan hanya dapat dilakukan pada hari kunjungan atau sesudahnya.')
-        result=db.session.execute(update(Visit).where(Visit.id==v.id, Visit.status.in_(expected)).values(status=target,updated_at=datetime.now()))
+        result=db.session.execute(update(Visit).where(Visit.id==v.id, Visit.status.in_(expected)).values(status=target,updated_at=clock_now()))
         if result.rowcount!=1: raise ValueError('Status sudah berubah. Muat ulang halaman sebelum melanjutkan.')
         NotificationService.send(v.patient,LABELS[target.value])
 
@@ -217,7 +218,7 @@ class PharmacyService:
         elif action=='ready':
             WorkflowService.transition(v,[VisitStatus.PHARMACY_PROCESSING],VisitStatus.MEDICINE_READY)
             for item in p.items:
-                if item.medicine.expiry and item.medicine.expiry<date.today(): raise ValueError(f'{item.medicine.name} kedaluwarsa.')
+                if item.medicine.expiry and item.medicine.expiry<clock_today(): raise ValueError(f'{item.medicine.name} kedaluwarsa.')
                 item.medicine.change_stock(-item.quantity,'Penyerahan resep',actor.id,v.id)
             p.status=PrescriptionStatus.READY
         elif action=='handover':
@@ -322,7 +323,7 @@ class PatientService:
         if len(nik)!=16 or not nik.isdigit(): raise ValueError('NIK harus 16 digit.')
         try: birth=date.fromisoformat(data.get('birth_date',''))
         except ValueError: raise ValueError('Tanggal lahir tidak valid.')
-        if birth>date.today() or birth.year<1900: raise ValueError('Tanggal lahir tidak valid.')
+        if birth>clock_today() or birth.year<1900: raise ValueError('Tanggal lahir tidak valid.')
         birth_place=required(data,'tempat_lahir',100)
         gender=data.get('gender')
         if gender not in ('Laki-laki','Perempuan'): raise ValueError('Pilih jenis kelamin.')
@@ -355,5 +356,5 @@ class PatientService:
         patient=Patient(user=user)
         PatientService.profile(patient,data,files,require_ktp)
         db.session.add(user); db.session.add(patient); db.session.flush()
-        patient.mr=f'KMH-{date.today().year}-{patient.id:05}'
+        patient.mr=f'KMH-{clock_today().year}-{patient.id:05}'
         return user

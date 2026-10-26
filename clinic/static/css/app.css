@@ -26,6 +26,7 @@ hr{border:0;border-top:1px solid var(--border);margin:24px 0}
 .muted{color:var(--muted)!important}
 .preserve{white-space:pre-wrap}
 .danger-text{color:var(--danger)!important}
+.test-clock-notice{position:relative;z-index:100;padding:6px 16px;background:#fff3cd;color:#765600;text-align:center;font-size:12px;font-weight:700}
 
 /* Branding and Iconic Hospital shell */
 .clinic-brand{display:inline-flex;align-items:center;gap:11px;color:var(--text);white-space:nowrap}
@@ -87,6 +88,7 @@ hr{border:0;border-top:1px solid var(--border);margin:24px 0}
 .button.secondary{background:#fff;color:#5d686f;border-color:#dce3e6}
 .button.secondary:hover{background:#f5f7f8;border-color:#cfd8dc;color:#343a3e}
 .button.danger{background:#fff2f2;color:var(--danger);border-color:#f3c9c9}
+.referral-reject-form{margin-top:16px}
 .button.small{min-height:31px;padding:6px 10px;font-size:10px}
 .button.full{width:100%;margin-top:8px;min-height:44px}
 .text-button{border:0;background:transparent;color:var(--primary-dark);font-weight:700;font-size:11px;padding:7px;cursor:pointer}
