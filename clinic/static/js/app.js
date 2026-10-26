@@ -8,6 +8,30 @@ const toast = (message, error = false) => {
   setTimeout(() => node.remove(), 10000);
 };
 document.querySelectorAll('[data-dismiss]').forEach(b => b.onclick = () => b.parentElement.remove());
+const resetLoginForm = () => {
+  const form = document.querySelector('[data-login-form]');
+  if (!form) return;
+  form.reset();
+  form.querySelectorAll('input[name="email"],input[name="password"]').forEach(input => {
+    input.value = '';
+    input.defaultValue = '';
+  });
+  const password = form.querySelector('input[name="password"]');
+  if (password) password.type = 'password';
+  form.querySelectorAll('[data-password]').forEach(button => {
+    button.textContent = 'Lihat';
+    button.setAttribute('aria-pressed', 'false');
+    button.setAttribute('aria-label', 'Tampilkan password');
+  });
+};
+const scheduleLoginFormReset = () => {
+  resetLoginForm();
+  setTimeout(resetLoginForm, 0);
+};
+scheduleLoginFormReset();
+window.addEventListener('pageshow', scheduleLoginFormReset);
+window.addEventListener('pagehide', resetLoginForm);
+window.addEventListener('popstate', () => setTimeout(resetLoginForm, 0));
 document.querySelector('#menu-toggle')?.addEventListener('click', e => {
   const opened = document.querySelector('#left-sidebar').classList.toggle('open');
   e.currentTarget.setAttribute('aria-expanded', String(opened));

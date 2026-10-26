@@ -16,7 +16,7 @@
           <p>{{ 'Lengkapi identitas untuk mulai menggunakan layanan klinik.' if register else 'Masuk untuk mengakses layanan dan ruang kerja Anda.' }}</p>
         </div>
         <div class="body">
-          <form method="post" class="form-auth-small" {% if register %}enctype="multipart/form-data"{% endif %}>
+          <form method="post" class="form-auth-small" {% if register %}enctype="multipart/form-data"{% else %}data-login-form{% endif %}>
             {{ csrf() }}
             {% if register %}{{ patient_fields() }}
             <section class="identity-upload-section"><h2>Dokumen Identitas</h2><div class="identity-upload-grid">
@@ -24,9 +24,9 @@
               <label class="identity-upload-field"><span>Upload Kartu BPJS <small>(Opsional)</small></span><input type="file" name="foto_bpjs" accept="image/jpeg,image/png,.jpg,.jpeg,.png"><small>Format: JPG, PNG. Maksimal 2MB.</small></label>
             </div></section>{% endif %}
             <div class="form-grid{% if not register %} one{% endif %}">
-              {{ field('email','Email','email') }}
-              <div class="password-field">{{ field('password','Password','password') }}<button class="text-button" type="button" data-password aria-label="Tampilkan password" aria-pressed="false">Lihat</button></div>
-              {% if register %}<div class="password-field">{{ field('confirm','Konfirmasi password','password') }}<button class="text-button" type="button" data-password aria-label="Tampilkan konfirmasi password" aria-pressed="false">Lihat</button></div>{% endif %}
+              {% if register %}{{ field('email','Email','email') }}{% else %}<label>Email<span class="required"> *</span><input name="email" type="email" value="" required autocomplete="username"></label>{% endif %}
+              <label class="password-field">Password<span class="required"> *</span><span class="password-control"><input name="password" type="password" required minlength="8" autocomplete="{{ 'new-password' if register else 'current-password' }}"><button class="text-button" type="button" data-password aria-label="Tampilkan password" aria-pressed="false">Lihat</button></span></label>
+              {% if register %}<label class="password-field">Konfirmasi password<span class="required"> *</span><span class="password-control"><input name="confirm" type="password" required minlength="8" autocomplete="new-password"><button class="text-button" type="button" data-password aria-label="Tampilkan konfirmasi password" aria-pressed="false">Lihat</button></span></label>{% endif %}
             </div>
             <button class="button full"><i class="fa {{ 'fa-user-plus' if register else 'fa-sign-in' }}"></i>{{ 'Daftar akun' if register else 'Masuk ke akun' }}</button>
             <div class="bottom">{{ 'Sudah memiliki akun?' if register else 'Pasien baru?' }} <a href="{{ url_for('web.login_page') if register else url_for('web.register') }}">{{ 'Masuk' if register else 'Daftar sekarang' }}</a></div>

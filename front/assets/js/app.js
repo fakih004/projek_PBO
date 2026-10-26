@@ -112,11 +112,48 @@
   }
 
   function hydrate(route) {
+    closeSidebar();
+    resetLoginForm();
     if (route.path === '/booking') updateSlots().catch(error => toast(error.message, true));
     const nursing = document.querySelector('[data-form="nursing"]');
     nursing?.querySelectorAll('[name="weight"],[name="height"]').forEach(input => input.addEventListener('input', updateBmi));
     document.querySelectorAll('[data-table-search]').forEach(input => input.addEventListener('input', filterTable));
+    document.querySelectorAll('.table-wrap').forEach(wrapper => {
+      wrapper.tabIndex = 0;
+      wrapper.setAttribute('role', 'region');
+      wrapper.setAttribute('aria-label', 'Tabel dapat digeser secara horizontal');
+    });
   }
+
+  function resetLoginForm() {
+    const form = document.querySelector('[data-login-form]');
+    if (!form) return;
+    form.reset();
+    form.querySelectorAll('input[name="email"],input[name="password"]').forEach(input => {
+      input.value = '';
+      input.defaultValue = '';
+    });
+    const password = form.querySelector('input[name="password"]');
+    if (password) password.type = 'password';
+    form.querySelectorAll('[data-password]').forEach(button => {
+      button.textContent = 'Lihat';
+      button.setAttribute('aria-pressed', 'false');
+      button.setAttribute('aria-label', 'Tampilkan password');
+    });
+  }
+
+  function setSidebar(open) {
+    const sidebar = document.querySelector('#left-sidebar');
+    const toggle = document.querySelector('[data-menu-toggle]');
+    if (!sidebar) return;
+    sidebar.classList.toggle('open', open);
+    document.body.classList.toggle('navigation-open', open);
+    toggle?.setAttribute('aria-expanded', String(open));
+    if (open && window.matchMedia('(max-width: 1024px)').matches) sidebar.querySelector('[data-menu-close]')?.focus();
+    if (!open && document.activeElement?.matches('[data-menu-close]')) toggle?.focus();
+  }
+
+  function closeSidebar() { setSidebar(false); }
 
   function formData(form) {
     return Object.fromEntries(new FormData(form).entries());
@@ -252,16 +289,48 @@
     const slot = event.target.closest('[data-slot]');
     if (slot) { const form = slot.closest('form'); form.querySelectorAll('[data-slot]').forEach(item => item.classList.remove('selected')); slot.classList.add('selected'); form.elements.time.value = slot.dataset.slot; return; }
     const password = event.target.closest('[data-password]');
-    if (password) { const input = password.parentElement.querySelector('input'); input.type = input.type === 'password' ? 'text' : 'password'; password.textContent = input.type === 'password' ? 'Lihat' : 'Sembunyikan'; return; }
-    if (event.target.closest('[data-menu-toggle]')) { document.querySelector('#left-sidebar')?.classList.toggle('open'); return; }
-    if (event.target.closest('[data-menu-close]')) { document.querySelector('#left-sidebar')?.classList.remove('open'); return; }
-    if (event.target.closest('[data-public-menu]')) { document.querySelector('#public-menu')?.classList.toggle('open'); return; }
-    if (event.target.closest('[data-notification-toggle]')) { const panel = document.querySelector('[data-notification-panel]'); panel.hidden = !panel.hidden; return; }
+    if (password) {
+      const input = password.parentElement.querySelector('input');
+      const visible = input.type === 'password';
+      input.type = visible ? 'text' : 'password';
+      password.textContent = visible ? 'Sembunyikan' : 'Lihat';
+      password.setAttribute('aria-pressed', String(visible));
+      password.setAttribute('aria-label', `${visible ? 'Sembunyikan' : 'Tampilkan'} password`);
+      return;
+    }
+    if (event.target.closest('[data-menu-toggle]')) { setSidebar(!document.querySelector('#left-sidebar')?.classList.contains('open')); return; }
+    if (event.target.closest('[data-menu-close]')) { closeSidebar(); return; }
+    if (event.target.closest('[data-public-menu]')) { const menu = document.querySelector('#public-menu'); const toggle = event.target.closest('[data-public-menu]'); menu?.classList.toggle('open'); toggle.setAttribute('aria-expanded', String(menu?.classList.contains('open'))); return; }
+    if (event.target.closest('#public-menu a')) { document.querySelector('#public-menu')?.classList.remove('open'); document.querySelector('[data-public-menu]')?.setAttribute('aria-expanded', 'false'); }
+    if (event.target.closest('[data-notification-toggle]')) { const panel = document.querySelector('[data-notification-panel]'); panel.hidden = !panel.hidden; event.target.closest('[data-notification-toggle]').setAttribute('aria-expanded', String(!panel.hidden)); return; }
     const sidebar = document.querySelector('#left-sidebar');
-    if (sidebar?.classList.contains('open') && !sidebar.contains(event.target) && !event.target.closest('[data-menu-toggle]')) sidebar.classList.remove('open');
+    if (sidebar?.classList.contains('open') && event.target.closest('#left-sidebar a')) closeSidebar();
+  });
+
+  document.addEventListener('keydown', event => {
+    if (event.key !== 'Escape') return;
+    closeSidebar();
+    const publicMenu = document.querySelector('#public-menu');
+    publicMenu?.classList.remove('open');
+    document.querySelector('[data-public-menu]')?.setAttribute('aria-expanded', 'false');
+    const panel = document.querySelector('[data-notification-panel]');
+    if (panel && !panel.hidden) {
+      panel.hidden = true;
+      document.querySelector('[data-notification-toggle]')?.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  window.addEventListener('resize', () => {
+    if (!window.matchMedia('(max-width: 1024px)').matches) closeSidebar();
   });
 
   window.addEventListener('hashchange', render);
+  window.addEventListener('pageshow', () => {
+    resetLoginForm();
+    setTimeout(resetLoginForm, 0);
+  });
+  window.addEventListener('pagehide', resetLoginForm);
+  window.addEventListener('popstate', () => setTimeout(resetLoginForm, 0));
   async function boot() {
     try { await C.ready?.(); }
     catch (error) { toast(error.message, true); }
