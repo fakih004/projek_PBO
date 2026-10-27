@@ -118,7 +118,11 @@ document.addEventListener('submit', async e => {
   if (form.dataset.confirm && !(await confirmAction(form.dataset.confirm))) return;
   form.dataset.submitting = '1'; const data = new FormData(form);
   const buttons = [...form.querySelectorAll('button[type="submit"],button:not([type])')];
-  const labels = buttons.map(b => b.textContent); buttons.forEach(b => { b.disabled = true; b.textContent = 'Menyimpan…'; });
+  const labels = buttons.map(b => b.textContent); buttons.forEach(b => {
+    b.disabled = true;
+    b.classList.add('is-loading');
+    b.innerHTML = '<span class="spinner-loading" role="status" aria-label="Menyimpan"></span>';
+  });
   if (!form.hasAttribute('data-ajax')) { HTMLFormElement.prototype.submit.call(form); return; }
   try {
     const response = await fetch(form.action, { method: 'POST', body: data, headers: { 'X-Requested-With': 'fetch', 'X-CSRFToken': csrf } });
@@ -126,7 +130,7 @@ document.addEventListener('submit', async e => {
     const result = await response.json(); if (!response.ok) throw new Error(result.message || 'Perubahan gagal disimpan.');
     toast(result.message); await refreshDashboard();
   } catch (err) { toast(err.message || 'Koneksi terganggu. Coba lagi.', true); }
-  finally { delete form.dataset.submitting; buttons.forEach((b, i) => { b.disabled = false; b.textContent = labels[i]; }); }
+  finally { delete form.dataset.submitting; buttons.forEach((b, i) => { b.disabled = false; b.classList.remove('is-loading'); b.textContent = labels[i]; }); }
 });
 const booking = document.querySelector('.booking-form');
 if (booking) {
