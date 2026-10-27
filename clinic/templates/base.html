@@ -10,8 +10,8 @@
   <link rel="stylesheet" href="{{ url_for('static',filename='hospital/assets/vendor/bootstrap/css/bootstrap.min.css') }}">
   <link rel="stylesheet" href="{{ url_for('static',filename='hospital/assets/vendor/font-awesome/css/font-awesome.min.css') }}">
   <link rel="stylesheet" href="{{ url_for('static',filename='hospital/assets/css/main.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static',filename='css/app.css',v='test-clock-20261026') }}">
-  <script src="{{ url_for('static',filename='js/app.js') }}" defer></script>
+  <link rel="stylesheet" href="{{ url_for('static',filename='css/app.css',v='login-split-20261027') }}">
+  <script src="{{ url_for('static',filename='js/app.js',v='login-reset-20261027') }}" defer></script>
 </head>
 <body data-theme="light" class="font-nunito{% if current_user.is_authenticated %} workspace{% endif %}{% if embedded|default(false) %} embedded{% endif %}">
 {% macro brand(compact=false) %}

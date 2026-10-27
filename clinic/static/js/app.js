@@ -8,9 +8,11 @@ const toast = (message, error = false) => {
   setTimeout(() => node.remove(), 10000);
 };
 document.querySelectorAll('[data-dismiss]').forEach(b => b.onclick = () => b.parentElement.remove());
+let loginEntryStarted = false;
+let loginResetTimers = [];
 const resetLoginForm = () => {
   const form = document.querySelector('[data-login-form]');
-  if (!form) return;
+  if (!form || loginEntryStarted) return;
   form.reset();
   form.querySelectorAll('input[name="email"],input[name="password"]').forEach(input => {
     input.value = '';
@@ -25,13 +27,34 @@ const resetLoginForm = () => {
   });
 };
 const scheduleLoginFormReset = () => {
+  loginResetTimers.forEach(clearTimeout);
+  loginResetTimers = [];
+  loginEntryStarted = false;
   resetLoginForm();
-  setTimeout(resetLoginForm, 0);
+  requestAnimationFrame(() => requestAnimationFrame(resetLoginForm));
+  loginResetTimers = [50, 250, 1000].map(delay => setTimeout(resetLoginForm, delay));
 };
-scheduleLoginFormReset();
-window.addEventListener('pageshow', scheduleLoginFormReset);
-window.addEventListener('pagehide', resetLoginForm);
-window.addEventListener('popstate', () => setTimeout(resetLoginForm, 0));
+const loginForm = document.querySelector('[data-login-form]');
+if (loginForm) {
+  const preserveManualEntry = () => {
+    loginEntryStarted = true;
+    loginResetTimers.forEach(clearTimeout);
+    loginResetTimers = [];
+  };
+  loginForm.addEventListener('keydown', preserveManualEntry);
+  loginForm.addEventListener('paste', preserveManualEntry);
+  loginForm.addEventListener('drop', preserveManualEntry);
+  loginForm.addEventListener('beforeinput', event => {
+    if (typeof event.data === 'string' && event.data.length) preserveManualEntry();
+  });
+  scheduleLoginFormReset();
+  window.addEventListener('pageshow', scheduleLoginFormReset);
+  window.addEventListener('pagehide', () => {
+    loginEntryStarted = false;
+    resetLoginForm();
+  });
+  window.addEventListener('popstate', scheduleLoginFormReset);
+}
 document.querySelector('#menu-toggle')?.addEventListener('click', e => {
   const opened = document.querySelector('#left-sidebar').classList.toggle('open');
   e.currentTarget.setAttribute('aria-expanded', String(opened));

@@ -847,7 +847,11 @@ dialog::backdrop{background:rgba(31,42,47,.48)}
   .auth-shell>.vertical-align-wrap{display:flex!important;width:100%;height:auto!important;min-height:100dvh}
   .clinic-auth:not(.register-mode){display:flex!important;flex:0 0 auto;flex-direction:column;align-items:center;justify-content:flex-start;width:100%;height:max-content!important;min-height:100dvh;box-sizing:border-box;padding:max(1.5rem,env(safe-area-inset-top)) max(1rem,env(safe-area-inset-right)) max(1.5rem,env(safe-area-inset-bottom)) max(1rem,env(safe-area-inset-left));overflow:visible;vertical-align:initial}
   .clinic-auth:not(.register-mode)::before,.clinic-auth:not(.register-mode)::after{display:none!important}
-  .clinic-auth:not(.register-mode) .auth-box{flex:0 0 auto;width:min(100%,520px);max-width:520px;margin-block:auto;margin-inline:auto;padding:0}
+  .clinic-auth:not(.register-mode) .auth-box{flex:0 0 auto;width:min(100%,74rem);max-width:74rem;margin-block:auto;margin-inline:auto;padding:0}
+  .login-split-layout{display:grid;grid-template-columns:minmax(22rem,.9fr) minmax(18rem,1.1fr);align-items:center;gap:clamp(2rem,5vw,5rem);width:100%}
+  .login-form-column{justify-self:end;width:100%;max-width:30rem;min-width:0}
+  .login-visual-panel{display:flex;align-items:center;justify-content:center;min-width:0;min-height:34rem;padding:clamp(1.25rem,2.5vw,2.25rem);overflow:hidden;border:1px solid rgba(255,255,255,.48);border-radius:1rem;background:rgba(236,248,250,.94);box-shadow:0 18px 45px rgba(26,91,101,.2)}
+  .login-visual-panel img{display:block;width:100%;height:auto;max-height:36rem;aspect-ratio:6/5;border-radius:.7rem;object-fit:contain}
   .clinic-auth:not(.register-mode) .top{width:100%;margin:0 0 1.5rem;text-align:center}
   .clinic-auth:not(.register-mode) .auth-brand{justify-content:center;width:fit-content;margin:0 auto .65rem}
   .clinic-auth:not(.register-mode) .auth-brand strong{font-size:1.125rem}
@@ -865,6 +869,17 @@ dialog::backdrop{background:rgba(31,42,47,.48)}
   .password-control>.text-button{position:absolute;top:50%;right:.35rem;bottom:auto;z-index:1;display:flex;align-items:center;justify-content:center;min-width:6.75rem;min-height:2.75rem;margin:0;padding:.5rem .7rem;transform:translateY(-50%);font-size:1rem;line-height:1.2}
   .clinic-auth:not(.register-mode) .bottom,.clinic-auth:not(.register-mode) .bottom a,.clinic-auth:not(.register-mode) .auth-back{font-size:1rem}
   .clinic-auth:not(.register-mode) .auth-back{margin-top:1.25rem;color:rgba(255,255,255,.92)}
+}
+
+@media screen and (min-width:721px) and (max-width:900px){
+  .login-visual-panel{min-height:26rem;padding:1rem}
+  .clinic-auth:not(.register-mode) .card .header .lead{font-size:clamp(2rem,5vw,2.5rem)}
+}
+
+@media screen and (max-width:720px){
+  .login-split-layout{grid-template-columns:minmax(0,1fr);gap:2rem}
+  .login-visual-panel{min-height:0;padding:.85rem}
+  .login-visual-panel img{max-height:none}
 }
 
 @media screen and (max-width:360px){

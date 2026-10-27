@@ -5,6 +5,7 @@
 <div class="vertical-align-wrap">
   <div class="vertical-align-middle auth-main hospital clinic-auth{% if register %} register-mode{% endif %}">
     <div class="auth-box">
+      {% if not register %}<div class="login-split-layout"><section class="login-form-column">{% endif %}
       <div class="top">
         <a class="auth-brand" href="{{ url_for('web.index') }}"><span><i class="fa fa-plus"></i></span><strong>MEDIKA HUSADA</strong></a>
         <small>KLINIK PRATAMA · SISTEM INFORMASI</small>
@@ -16,7 +17,7 @@
           <p>{{ 'Lengkapi identitas untuk mulai menggunakan layanan klinik.' if register else 'Masuk untuk mengakses layanan dan ruang kerja Anda.' }}</p>
         </div>
         <div class="body">
-          <form method="post" class="form-auth-small" {% if register %}enctype="multipart/form-data"{% else %}data-login-form{% endif %}>
+          <form method="post" class="form-auth-small" {% if register %}enctype="multipart/form-data"{% else %}id="loginForm" data-login-form autocomplete="off"{% endif %}>
             {{ csrf() }}
             {% if register %}{{ patient_fields() }}
             <section class="identity-upload-section"><h2>Dokumen Identitas</h2><div class="identity-upload-grid">
@@ -24,8 +25,8 @@
               <label class="identity-upload-field"><span>Upload Kartu BPJS <small>(Opsional)</small></span><input type="file" name="foto_bpjs" accept="image/jpeg,image/png,.jpg,.jpeg,.png"><small>Format: JPG, PNG. Maksimal 2MB.</small></label>
             </div></section>{% endif %}
             <div class="form-grid{% if not register %} one{% endif %}">
-              {% if register %}{{ field('email','Email','email') }}{% else %}<label>Email<span class="required"> *</span><input name="email" type="email" value="" required autocomplete="username"></label>{% endif %}
-              <label class="password-field">Password<span class="required"> *</span><span class="password-control"><input name="password" type="password" required minlength="8" autocomplete="{{ 'new-password' if register else 'current-password' }}"><button class="text-button" type="button" data-password aria-label="Tampilkan password" aria-pressed="false">Lihat</button></span></label>
+              {% if register %}{{ field('email','Email','email') }}{% else %}<label>Email<span class="required"> *</span><input id="email" name="email" type="email" value="" required autocomplete="off" autocapitalize="none" spellcheck="false"></label>{% endif %}
+              <label class="password-field">Password<span class="required"> *</span><span class="password-control"><input {% if not register %}id="password" value=""{% endif %} name="password" type="password" required minlength="8" autocomplete="new-password"><button class="text-button" type="button" data-password aria-label="Tampilkan password" aria-pressed="false">Lihat</button></span></label>
               {% if register %}<label class="password-field">Konfirmasi password<span class="required"> *</span><span class="password-control"><input name="confirm" type="password" required minlength="8" autocomplete="new-password"><button class="text-button" type="button" data-password aria-label="Tampilkan konfirmasi password" aria-pressed="false">Lihat</button></span></label>{% endif %}
             </div>
             <button class="button full"><i class="fa {{ 'fa-user-plus' if register else 'fa-sign-in' }}"></i>{{ 'Daftar akun' if register else 'Masuk ke akun' }}</button>
@@ -34,6 +35,7 @@
         </div>
       </div>
       <a class="auth-back" href="{{ url_for('web.index') }}"><i class="fa fa-arrow-left"></i> Kembali ke beranda</a>
+      {% if not register %}</section><aside class="login-visual-panel" aria-label="Ilustrasi pelayanan klinik Medika Husada"><img src="{{ url_for('static',filename='hospital/assets/images/ilustrasi-login-resepsionis.svg') }}" width="1200" height="1000" alt="Ilustrasi pasien dan petugas resepsionis di Klinik Medika Husada"></aside></div>{% endif %}
     </div>
   </div>
 </div>
