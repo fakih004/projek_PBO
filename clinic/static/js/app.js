@@ -121,7 +121,7 @@ document.addEventListener('submit', async e => {
   const labels = buttons.map(b => b.textContent); buttons.forEach(b => {
     b.disabled = true;
     b.classList.add('is-loading');
-    b.innerHTML = '<span class="spinner-loading" role="status" aria-label="Menyimpan"></span>';
+    b.innerHTML = '<span class="spinner-loading" role="status" aria-label="Menyimpan"></span>';   
   });
   if (!form.hasAttribute('data-ajax')) { HTMLFormElement.prototype.submit.call(form); return; }
   try {
