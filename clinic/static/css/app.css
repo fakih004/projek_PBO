@@ -607,18 +607,18 @@ dialog::backdrop{background:rgba(31,42,47,.48)}
     --sidebar-width:310px;
     --navbar-height:78px;
     --content-gutter:clamp(1rem,2.2vw,2.5rem);
-    --font-body:clamp(1rem,.94rem + .28vw,1.125rem);
-    --font-subtext:clamp(1rem,.94rem + .28vw,1.125rem);
-    --font-label:clamp(.9375rem,.91rem + .14vw,1rem);
-    --font-input:clamp(1rem,.97rem + .14vw,1.0625rem);
-    --font-nav:clamp(1rem,.94rem + .28vw,1.125rem);
-    --font-table:clamp(1rem,.97rem + .14vw,1.0625rem);
-    --font-button:clamp(.9375rem,.9rem + .28vw,1.0625rem);
-    --font-card-title:clamp(1.25rem,1.13rem + .55vw,1.5rem);
-    --font-page-title:clamp(2.375rem,2rem + 1.6vw,3rem);
-    --font-section-title:clamp(1.625rem,1.33rem + 1.15vw,2.125rem);
-    --font-badge:clamp(.875rem,.84rem + .14vw,.9375rem);
-    --font-meta:clamp(.875rem,.81rem + .28vw,1rem)
+    --font-body:clamp(.9375rem,.92rem + .08vw,1rem);
+    --font-subtext:clamp(.9375rem,.91rem + .14vw,1.0625rem);
+    --font-label:clamp(.875rem,.85rem + .14vw,.9375rem);
+    --font-input:clamp(.9375rem,.91rem + .14vw,1rem);
+    --font-nav:clamp(.9375rem,.92rem + .08vw,1rem);
+    --font-table:clamp(.875rem,.84rem + .2vw,1rem);
+    --font-button:clamp(.875rem,.84rem + .28vw,1rem);
+    --font-card-title:clamp(1.125rem,1.03rem + .45vw,1.375rem);
+    --font-page-title:clamp(2rem,1.75rem + .65vw,2.5rem);
+    --font-section-title:clamp(1.5rem,1.24rem + 1vw,1.875rem);
+    --font-badge:clamp(.8125rem,.79rem + .12vw,.875rem);
+    --font-meta:clamp(.8125rem,.77rem + .22vw,.9375rem)
   }
   html{max-width:100%;overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
   body{max-width:100%;overflow-x:hidden;font-size:var(--font-body);line-height:1.65}
@@ -635,28 +635,28 @@ dialog::backdrop{background:rgba(31,42,47,.48)}
   .clinic-brand{gap:.75rem}
   .clinic-logo{width:2.75rem;height:2.75rem}
   .clinic-logo i{font-size:1.25rem}
-  .clinic-brand-copy strong{font-size:1rem}
-  .clinic-brand-copy small{font-size:.875rem;letter-spacing:.07rem}
+  .clinic-brand-copy strong{font-size:.9375rem}
+  .clinic-brand-copy small{font-size:.8125rem;letter-spacing:.07rem}
   .clinic-navbar,.clinic-navbar.navbar-fixed-top{height:var(--navbar-height);padding-top:env(safe-area-inset-top);box-sizing:content-box}
   .clinic-navbar .container-fluid{height:var(--navbar-height);padding-right:max(1rem,env(safe-area-inset-right))}
   .clinic-navbar .navbar-brand{width:var(--sidebar-width);height:var(--navbar-height);flex-basis:var(--sidebar-width);padding:0 1.125rem 0 max(1.125rem,env(safe-area-inset-left))}
   .clinic-navbar .navbar-brand .btn-toggle-offcanvas,.clinic-navbar .icon-menu{width:2.875rem;height:2.875rem;min-width:2.875rem;font-size:1.25rem}
   .clinic-navbar .clinic-logo{width:2.5rem;height:2.5rem}
-  .clinic-navbar .clinic-brand-copy strong{font-size:1rem}
+  .clinic-navbar .clinic-brand-copy strong{font-size:.9375rem}
   .clinic-navbar .navbar-right{gap:clamp(.5rem,1.2vw,1.25rem);min-width:0}
   .clinic-navbar .navbar-form{width:min(22rem,28vw)}
   .clinic-navbar .navbar-form input{min-height:3rem;height:3rem;font-size:var(--font-input);padding-left:2.75rem}
   .clinic-navbar .navbar-form button{width:2.75rem;height:2.75rem;top:.125rem}
-  .clinic-navbar .notification-toggle b{top:0;right:0;min-width:1.5rem;height:1.5rem;font-size:.875rem}
-  .clinic-online{font-size:clamp(.9375rem,.9rem + .2vw,1.0625rem)}
+  .clinic-navbar .notification-toggle b{top:0;right:0;min-width:1.5rem;height:1.5rem;font-size:.8125rem}
+  .clinic-online{font-size:clamp(.875rem,.84rem + .18vw,1rem)}
 
   #left-sidebar{top:var(--navbar-height);width:var(--sidebar-width);height:calc(100dvh - var(--navbar-height));max-width:calc(100vw - 2rem)}
   #left-sidebar .sidebar-scroll{overscroll-behavior:contain;padding-bottom:max(1.5rem,env(safe-area-inset-bottom))}
   #left-sidebar .sidebar-close{width:2.875rem;height:2.875rem}
   #left-sidebar .user-account{padding:1.875rem 1.25rem 1.625rem}
   .user-copy>span,.user-copy>small{font-size:var(--font-label)}
-  .user-copy>strong{font-size:clamp(1.125rem,1.06rem + .28vw,1.25rem)}
-  .clinic-sidebar-heading{padding:1rem 1.25rem .85rem;font-size:.875rem}
+  .user-copy>strong{font-size:clamp(1.0625rem,1rem + .25vw,1.1875rem)}
+  .clinic-sidebar-heading{padding:1rem 1.25rem .85rem;font-size:.8125rem}
   #left-sidebar-nav .metismenu>li{margin:.25rem 0}
   #left-sidebar-nav .metismenu>li>a{min-height:3.25rem;padding:.85rem .875rem;font-size:var(--font-nav);line-height:1.4}
   #left-sidebar-nav .metismenu>li>a i{width:1.5rem;font-size:1.25rem}
@@ -685,10 +685,10 @@ dialog::backdrop{background:rgba(31,42,47,.48)}
   .stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(1rem,1.2vw,1.5rem)}
   .stat{min-height:10.5rem;padding:clamp(1.375rem,1.6vw,2rem)}
   .stat>span,.finance-stat-top>span{max-width:calc(100% - 3.25rem);font-size:var(--font-subtext);line-height:1.5}
-  .stat>strong{font-size:clamp(2rem,1.7rem + 1.25vw,2.625rem);margin:.9rem 0 .4rem}
-  .stat>strong.smaller{font-size:clamp(1.75rem,1.5rem + .75vw,2.125rem)}
+  .stat>strong{font-size:clamp(1.875rem,1.6rem + 1.15vw,2.5rem);margin:.9rem 0 .4rem}
+  .stat>strong.smaller{font-size:clamp(1.625rem,1.4rem + .7vw,2rem)}
   .stat small,.stat.finance-stat>small{font-size:var(--font-subtext);line-height:1.5}
-  .compact .stat>strong,.stat.finance-stat>strong{font-size:clamp(1.75rem,1.5rem + .75vw,2.125rem)}
+  .compact .stat>strong,.stat.finance-stat>strong{font-size:clamp(1.625rem,1.4rem + .7vw,2rem)}
   .finance-chart-card .section-head p,.chart-legend,.chart-empty{font-size:var(--font-subtext)}
   .service-cost-section>h2{font-size:var(--font-section-title)}
   .service-cost-section>.muted,.service-cost-label{font-size:var(--font-label)}
@@ -699,10 +699,10 @@ dialog::backdrop{background:rgba(31,42,47,.48)}
   .appointment-mini h3{font-size:var(--font-card-title)}
   .appointment-mini p{font-size:var(--font-subtext)}
   .timeline li{min-width:0;font-size:var(--font-label);line-height:1.5}
-  .timeline li span{width:2.5rem;height:2.5rem;font-size:.9375rem}
-  .queue-label{font-size:1.25rem}
-  .queue-large{font-size:clamp(2rem,1.7rem + 1vw,2.625rem)}
-  .vitals strong{font-size:clamp(1.375rem,1.2rem + .45vw,1.625rem)}
+  .timeline li span{width:2.5rem;height:2.5rem;font-size:.875rem}
+  .queue-label{font-size:1.125rem}
+  .queue-large{font-size:clamp(1.875rem,1.6rem + .9vw,2.5rem)}
+  .vitals strong{font-size:clamp(1.25rem,1.1rem + .4vw,1.5rem)}
   .vitals em{font-size:var(--font-label)}
 
   label{font-size:var(--font-label);line-height:1.55;margin-bottom:1.25rem}
@@ -727,19 +727,24 @@ dialog::backdrop{background:rgba(31,42,47,.48)}
 
   .public-nav,.public-main,footer{width:100%;max-width:1440px}
   .public-nav{padding:1.25rem var(--content-gutter)}
-  .public-nav nav{gap:clamp(1rem,2vw,2rem);font-size:var(--font-nav)}
+  .public-nav nav{gap:clamp(1rem,2vw,2rem);font-size:.875rem}
+  .public-nav nav .button{font-size:.875rem}
   .public-menu-toggle{width:2.875rem;height:2.875rem;font-size:1.25rem}
   .public-main{padding-inline:var(--content-gutter)}
   .public-main>section{margin:clamp(3rem,6vw,6rem) 0}
-  .hero h1{font-size:clamp(2.75rem,2.15rem + 3vw,4.75rem);line-height:1.12;max-width:13ch}
-  .hero p{max-width:40rem;font-size:var(--font-subtext);line-height:1.75}
-  .hero-proof{font-size:var(--font-subtext)}
+  .hero .eyebrow{font-size:clamp(.8125rem,.79rem + .12vw,.875rem)}
+  .hero h1{font-size:clamp(2.2rem,3.2vw,3.2rem);line-height:1.12;max-width:13ch}
+  .hero p{max-width:40rem;font-size:clamp(.875rem,.85rem + .12vw,.9375rem);line-height:1.75}
+  .hero .button{font-size:clamp(.8125rem,.79rem + .12vw,.875rem)}
+  .hero-proof{font-size:clamp(.8125rem,.79rem + .12vw,.875rem)}
   .floating-tag,.doctor-card .eyebrow,.doctor-schedule-status,.doctor-schedule-quota{font-size:var(--font-badge)}
-  .hero-note strong{font-size:var(--font-body)}
+  .hero .floating-tag{font-size:clamp(.8125rem,.79rem + .12vw,.875rem)}
+  .hero-note strong{font-size:clamp(.875rem,.85rem + .12vw,.9375rem)}
+  .hero-note small{font-size:clamp(.75rem,.73rem + .1vw,.8125rem)}
   .doctor-card h3,.services h3{font-size:var(--font-card-title)}
   .doctor-card p,.services p,.doctor-schedule-service,.doctor-schedule-empty{font-size:var(--font-subtext)}
   .doctor-schedule-card h3{font-size:var(--font-card-title)}
-  .doctor-schedule-time{font-size:1.375rem}
+  .doctor-schedule-time{font-size:1.25rem}
   .doctor-card .schedule-lines>span{font-size:var(--font-label);padding:.5rem .7rem}
   .journey-steps strong{font-size:var(--font-subtext)}
   footer{padding:1.75rem var(--content-gutter);font-size:var(--font-subtext)}
@@ -747,8 +752,8 @@ dialog::backdrop{background:rgba(31,42,47,.48)}
 
   .auth-shell,.auth-shell .vertical-align-wrap,.clinic-auth{min-height:100dvh}
   .clinic-auth{padding:max(2rem,env(safe-area-inset-top)) 0 max(2rem,env(safe-area-inset-bottom))}
-  .auth-brand strong{font-size:1.125rem}
-  .clinic-auth .top>small{font-size:.875rem}
+  .auth-brand strong{font-size:1.0625rem}
+  .clinic-auth .top>small{font-size:.8125rem}
   .clinic-auth .card .header .lead{font-size:var(--font-section-title)}
   .clinic-auth .card .header p:last-child{font-size:var(--font-subtext);line-height:1.6}
   .clinic-auth label{font-size:var(--font-label)}
@@ -771,12 +776,17 @@ dialog::backdrop{background:rgba(31,42,47,.48)}
   .document-header p,.receipt-meta p,.totals p,.document-footer{font-size:var(--font-subtext)}
   .receipt .table-wrap table{font-size:var(--font-table)}
   .receipt td,.receipt th{font-size:inherit;padding:1rem .75rem}
-  .totals .grand-total{font-size:1.25rem}
+  .totals .grand-total{font-size:1.125rem}
 }
 
 @media screen and (max-width:1320px){
   .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
   .stats.finance-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+@media screen and (min-width:801px){
+  .hero h1{max-width:18ch}
+  .hero-title-line{white-space:nowrap}
 }
 
 @media screen and (max-width:1024px){
@@ -835,7 +845,7 @@ dialog::backdrop{background:rgba(31,42,47,.48)}
 }
 
 @media screen and (max-width:420px){
-  .hero h1{font-size:clamp(2.5rem,12vw,3.25rem)}
+  .hero h1{font-size:2.2rem}
   .services{grid-template-columns:1fr}
   .patient-banner,.receipt-meta{grid-template-columns:1fr}
   .vitals{grid-template-columns:1fr}
@@ -857,26 +867,26 @@ dialog::backdrop{background:rgba(31,42,47,.48)}
   .login-visual-panel img{display:block;width:100%;height:auto;max-height:36rem;aspect-ratio:6/5;border-radius:.7rem;object-fit:contain}
   .clinic-auth:not(.register-mode) .top{width:100%;margin:0 0 1.5rem;text-align:center}
   .clinic-auth:not(.register-mode) .auth-brand{justify-content:center;width:fit-content;margin:0 auto .65rem}
-  .clinic-auth:not(.register-mode) .auth-brand strong{font-size:1.125rem}
-  .clinic-auth:not(.register-mode) .top>small{display:block;margin-left:0;color:rgba(255,255,255,.86);font-size:.875rem;line-height:1.5;letter-spacing:.075rem;text-align:center}
+  .clinic-auth:not(.register-mode) .auth-brand strong{font-size:1.0625rem}
+  .clinic-auth:not(.register-mode) .top>small{display:block;margin-left:0;color:rgba(255,255,255,.86);font-size:.8125rem;line-height:1.5;letter-spacing:.075rem;text-align:center}
   .clinic-auth:not(.register-mode) .card{width:100%;margin:0;padding:0}
   .clinic-auth:not(.register-mode) .card .header{padding:clamp(1.5rem,5vw,2rem) clamp(1.25rem,5vw,2rem) .75rem;text-align:center}
-  .clinic-auth:not(.register-mode) .card .header .lead{font-size:clamp(2rem,7vw,3rem);line-height:1.2}
-  .clinic-auth:not(.register-mode) .card .header p:last-child{font-size:clamp(1rem,.96rem + .25vw,1.125rem)}
+  .clinic-auth:not(.register-mode) .card .header .lead{font-size:clamp(1.875rem,5vw,2.5rem);line-height:1.2}
+  .clinic-auth:not(.register-mode) .card .header p:last-child{font-size:clamp(.9375rem,.91rem + .2vw,1.0625rem)}
   .clinic-auth:not(.register-mode) .card .body{padding:1rem clamp(1.25rem,5vw,2rem) clamp(1.5rem,5vw,2rem)}
-  .clinic-auth:not(.register-mode) label{width:100%;font-size:1rem}
-  .clinic-auth:not(.register-mode) input,.clinic-auth:not(.register-mode) select{width:100%;min-height:3.25rem;font-size:1rem}
-  .clinic-auth:not(.register-mode) .button.full{display:flex;align-items:center;justify-content:center;gap:.55rem;width:100%;min-height:3.25rem;font-size:clamp(1rem,.96rem + .25vw,1.0625rem);text-align:center}
+  .clinic-auth:not(.register-mode) label{width:100%;font-size:.9375rem}
+  .clinic-auth:not(.register-mode) input,.clinic-auth:not(.register-mode) select{width:100%;min-height:3.25rem;font-size:.9375rem}
+  .clinic-auth:not(.register-mode) .button.full{display:flex;align-items:center;justify-content:center;gap:.55rem;width:100%;min-height:3.25rem;font-size:clamp(.9375rem,.91rem + .2vw,1rem);text-align:center}
   .password-control{position:relative;display:block;width:100%;margin-top:.5rem}
   .password-control input{margin-top:0;padding-right:7.5rem}
-  .password-control>.text-button{position:absolute;top:50%;right:.35rem;bottom:auto;z-index:1;display:flex;align-items:center;justify-content:center;min-width:6.75rem;min-height:2.75rem;margin:0;padding:.5rem .7rem;transform:translateY(-50%);font-size:1rem;line-height:1.2}
-  .clinic-auth:not(.register-mode) .bottom,.clinic-auth:not(.register-mode) .bottom a,.clinic-auth:not(.register-mode) .auth-back{font-size:1rem}
+  .password-control>.text-button{position:absolute;top:50%;right:.35rem;bottom:auto;z-index:1;display:flex;align-items:center;justify-content:center;min-width:6.75rem;min-height:2.75rem;margin:0;padding:.5rem .7rem;transform:translateY(-50%);font-size:.9375rem;line-height:1.2}
+  .clinic-auth:not(.register-mode) .bottom,.clinic-auth:not(.register-mode) .bottom a,.clinic-auth:not(.register-mode) .auth-back{font-size:.9375rem}
   .clinic-auth:not(.register-mode) .auth-back{margin-top:1.25rem;color:rgba(255,255,255,.92)}
 }
 
 @media screen and (min-width:721px) and (max-width:900px){
   .login-visual-panel{min-height:26rem;padding:1rem}
-  .clinic-auth:not(.register-mode) .card .header .lead{font-size:clamp(2rem,5vw,2.5rem)}
+  .clinic-auth:not(.register-mode) .card .header .lead{font-size:clamp(1.875rem,4.5vw,2.375rem)}
 }
 
 @media screen and (max-width:720px){

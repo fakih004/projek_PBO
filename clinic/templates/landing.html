@@ -1,5 +1,5 @@
 {% extends 'base.html' %}{% block content %}
-<section class="hero"><div><span class="eyebrow">PELAYANAN TERINTEGRASI, SEPENUH HATI</span><h1>Langkah kecil untuk<br><em>hidup lebih sehat.</em></h1><p>Perawatan yang Anda butuhkan, dengan proses yang lebih mudah. Buat janji, pantau antrean, dan akses rekam medis dalam satu tempat.</p><div class="actions"><a class="button" href="{{ url_for('web.booking') }}">Buat Janji Temu <span>&#8599;</span></a><a class="button secondary" href="{{ url_for('web.register') }}">Daftar Sekarang</a></div><div class="hero-proof"><span>&#10003; Dokter berpengalaman</span><span>&#10003; Pelayanan BPJS & Umum</span></div></div><div class="hero-visual"><span class="floating-tag">&#9825; Kesehatan Anda, prioritas kami</span><div class="hero-note"><span class="brand-icon">&#10010;</span><div><strong>Perawatan yang terhubung</strong><small>Dari pendaftaran hingga pemulihan</small></div></div></div></section>
+<section class="hero"><div><span class="eyebrow">PELAYANAN TERINTEGRASI, SEPENUH HATI</span><h1><span class="hero-title-line">Langkah kecil untuk</span><br><em>hidup lebih sehat.</em></h1><p>Perawatan yang Anda butuhkan, dengan proses yang lebih mudah. Buat janji, pantau antrean, dan akses rekam medis dalam satu tempat.</p><div class="actions"><a class="button" href="{{ url_for('web.booking') }}">Buat Janji Temu <span>&#8599;</span></a><a class="button secondary" href="{{ url_for('web.register') }}">Daftar Sekarang</a></div><div class="hero-proof"><span>&#10003; Dokter berpengalaman</span><span>&#10003; Pelayanan BPJS & Umum</span></div></div><div class="hero-visual"><span class="floating-tag">&#9825; Kesehatan Anda, prioritas kami</span><div class="hero-note"><span class="brand-icon">&#10010;</span><div><strong>Perawatan yang terhubung</strong><small>Dari pendaftaran hingga pemulihan</small></div></div></div></section>
 <section id="dokter"><div class="section-head"><div><span class="eyebrow">TEMUKAN DOKTER ANDA</span><h2>Kenali dokter, atur waktu Anda.</h2></div><span class="badge">Jadwal hari ini &#183; {{ today }}</span></div><div class="grid two">{% for d in doctors %}<article class="card doctor-card"><div class="doctor-photo-frame relative isolate w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 border border-gray-200">
 {% if 'Fakih' in d.user.name %}<img src="{{ url_for('static', filename='images/fakih.jpeg') }}" alt="dr. Muhammad Fakih Nabal" class="absolute inset-0 w-full h-full" style="object-fit:cover;object-position:center 15%;transform:scale(1.3)" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="doctor-photo-fallback" style="display:none">MF</div>
 {% elif 'Alia' in d.user.name %}<img src="{{ url_for('static', filename='images/alia.jpeg') }}" alt="dr. Alia Fransiska" class="absolute inset-0 w-full h-full" style="object-fit:cover;object-position:center 15%;transform:scale(1.3)" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="doctor-photo-fallback" style="display:none">AF</div>
@@ -14,15 +14,15 @@
   .landing-footer-glow-two{right:4%;bottom:-190px;background:rgba(59,130,246,.045)}
   .landing-footer-inner{position:relative;z-index:1;width:min(100%,1160px);margin:0 auto}
   .landing-footer-grid{display:grid;grid-template-columns:1fr;gap:38px}
-  .landing-footer-brand{display:inline-flex;align-items:center;gap:12px;color:#1e293b;text-decoration:none;font-size:18px;font-weight:700;letter-spacing:.06em}
+  .landing-footer-brand{display:inline-flex;align-items:center;gap:12px;color:#1e293b;text-decoration:none;font-size:17px;font-weight:700;letter-spacing:.06em}
   .landing-footer-mark{display:flex;align-items:center;justify-content:center;flex:0 0 42px;width:42px;height:42px;box-sizing:border-box;padding:0;border-radius:13px;background:linear-gradient(135deg,#14b8a6,#0ea5e9);color:#fff;box-shadow:0 5px 16px rgba(20,184,166,.22)}
-  .landing-footer-plus{display:block;margin:-1px 0 0;font-size:28px;font-weight:700;line-height:1;color:#fff;user-select:none}
-  .landing-footer-description{max-width:340px;margin:16px 0 0;color:#64748b;font-size:16px;line-height:1.75}
-  .landing-footer-heading{margin:0 0 18px;color:#0f8b83;font-size:26px;font-weight:700;line-height:1.28;letter-spacing:.06em;text-transform:uppercase}
+  .landing-footer-plus{display:block;margin:-1px 0 0;font-size:26px;font-weight:700;line-height:1;color:#fff;user-select:none}
+  .landing-footer-description{max-width:340px;margin:16px 0 0;color:#64748b;font-size:15px;line-height:1.75}
+  .landing-footer-heading{margin:0 0 18px;color:#0f8b83;font-size:24px;font-weight:700;line-height:1.28;letter-spacing:.06em;text-transform:uppercase}
   .landing-footer-links,.landing-footer-contacts{display:flex;flex-direction:column;align-items:flex-start;gap:13px}
-  .landing-footer-links a{color:#64748b;font-size:16px;font-weight:500;text-decoration:none;transition:color .18s ease}
+  .landing-footer-links a{color:#64748b;font-size:15px;font-weight:500;text-decoration:none;transition:color .18s ease}
   .landing-footer-links a:hover{color:#0f8b83}
-  .landing-footer-contact{display:flex;align-items:center;gap:11px;color:#475569;font-size:16px;text-decoration:none;transition:color .18s ease}
+  .landing-footer-contact{display:flex;align-items:center;gap:11px;color:#475569;font-size:15px;text-decoration:none;transition:color .18s ease}
   .landing-footer-contact:hover{color:#0f8b83}
   .landing-footer-contact-icon{display:flex;align-items:center;justify-content:center;flex:0 0 36px;width:36px;height:36px;box-sizing:border-box;padding:0;border-radius:50%;background:#f1f5f9;line-height:1;text-align:center;transition:background .18s ease}
   .landing-footer-contact-icon .fa{display:flex;align-items:center;justify-content:center;width:1em;height:1em;margin:0;padding:0;line-height:1}
@@ -32,7 +32,7 @@
   .landing-footer-contact-icon.youtube{color:#ef4444;background:#fef2f2}
   .landing-footer-contact-icon.whatsapp{color:#16a34a;background:#f0fdf4}
   .landing-footer-bottom{margin-top:48px;padding-top:22px;border-top:1px solid #e2e8f0;text-align:center}
-  .landing-footer-bottom small{color:#94a3b8;font-size:14px;line-height:1.6}
+  .landing-footer-bottom small{color:#94a3b8;font-size:13px;line-height:1.6}
   @media (min-width:640px){.landing-footer-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:42px}}
   @media (min-width:960px){.landing-footer-grid{grid-template-columns:1.25fr .8fr 1fr;gap:56px}}
 </style>
